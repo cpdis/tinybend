@@ -1,0 +1,2 @@
+date	job	command	estimate	actual	outcome
+2026-11-27	google tiles, bend coverage probe	node render/shoot.js render/frames/bend-probe.json --out render/out/bend-probe (scratch copy of tinyperth render, camera.bend.js)	under $0.10	under $0.10 (28 shots, 24,233 tiles shown, no retries)	28 rendered, 0 failed, 0 bad in check-shots
