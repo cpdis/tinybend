@@ -1,0 +1,198 @@
+[
+ {
+  "id": "downtown-oldmill__c-1_r0",
+  "x": -2048,
+  "y": 0,
+  "size": 2048,
+  "height": 1085
+ },
+ {
+  "id": "downtown-oldmill__c-1_r1",
+  "x": -2048,
+  "y": 2048,
+  "size": 2048,
+  "height": 1085
+ },
+ {
+  "id": "downtown-oldmill__c0_r0",
+  "x": 0,
+  "y": 0,
+  "size": 2048,
+  "height": 1085
+ },
+ {
+  "id": "downtown-oldmill__c0_r1",
+  "x": 0,
+  "y": 2048,
+  "size": 2048,
+  "height": 1085
+ },
+ {
+  "id": "pilot-butte__c3_r-2",
+  "x": 6144,
+  "y": -4096,
+  "size": 2048,
+  "height": 1160
+ },
+ {
+  "id": "pilot-butte__c3_r-1",
+  "x": 6144,
+  "y": -2048,
+  "size": 2048,
+  "height": 1160
+ },
+ {
+  "id": "pilot-butte__c4_r-2",
+  "x": 8192,
+  "y": -4096,
+  "size": 2048,
+  "height": 1160
+ },
+ {
+  "id": "pilot-butte__c4_r-1",
+  "x": 8192,
+  "y": -2048,
+  "size": 2048,
+  "height": 1160
+ },
+ {
+  "id": "forest-west__c-13_r5",
+  "x": -26624,
+  "y": 10240,
+  "size": 2048,
+  "height": 1180
+ },
+ {
+  "id": "forest-west__c-13_r6",
+  "x": -26624,
+  "y": 12288,
+  "size": 2048,
+  "height": 1180
+ },
+ {
+  "id": "forest-west__c-12_r5",
+  "x": -24576,
+  "y": 10240,
+  "size": 2048,
+  "height": 1180
+ },
+ {
+  "id": "forest-west__c-12_r6",
+  "x": -24576,
+  "y": 12288,
+  "size": 2048,
+  "height": 1180
+ },
+ {
+  "id": "lava-butte__c1_r18",
+  "x": 2048,
+  "y": 36864,
+  "size": 2048,
+  "height": 1290
+ },
+ {
+  "id": "lava-butte__c1_r19",
+  "x": 2048,
+  "y": 38912,
+  "size": 2048,
+  "height": 1290
+ },
+ {
+  "id": "lava-butte__c2_r18",
+  "x": 4096,
+  "y": 36864,
+  "size": 2048,
+  "height": 1290
+ },
+ {
+  "id": "lava-butte__c2_r19",
+  "x": 4096,
+  "y": 38912,
+  "size": 2048,
+  "height": 1290
+ },
+ {
+  "id": "gap-forest__c-29_r12",
+  "x": -59392,
+  "y": 24576,
+  "size": 2048,
+  "height": 1480
+ },
+ {
+  "id": "gap-forest__c-29_r13",
+  "x": -59392,
+  "y": 26624,
+  "size": 2048,
+  "height": 1480
+ },
+ {
+  "id": "gap-forest__c-28_r12",
+  "x": -57344,
+  "y": 24576,
+  "size": 2048,
+  "height": 1480
+ },
+ {
+  "id": "gap-forest__c-28_r13",
+  "x": -57344,
+  "y": 26624,
+  "size": 2048,
+  "height": 1480
+ },
+ {
+  "id": "bachelor-west-village__c-45_r16",
+  "x": -92160,
+  "y": 32768,
+  "size": 2048,
+  "height": 1900
+ },
+ {
+  "id": "bachelor-west-village__c-45_r17",
+  "x": -92160,
+  "y": 34816,
+  "size": 2048,
+  "height": 1900
+ },
+ {
+  "id": "bachelor-west-village__c-44_r16",
+  "x": -90112,
+  "y": 32768,
+  "size": 2048,
+  "height": 1900
+ },
+ {
+  "id": "bachelor-west-village__c-44_r17",
+  "x": -90112,
+  "y": 34816,
+  "size": 2048,
+  "height": 1900
+ },
+ {
+  "id": "bachelor-summit__c-45_r16",
+  "x": -92160,
+  "y": 32768,
+  "size": 2048,
+  "height": 2600
+ },
+ {
+  "id": "bachelor-summit__c-45_r17",
+  "x": -92160,
+  "y": 34816,
+  "size": 2048,
+  "height": 2600
+ },
+ {
+  "id": "bachelor-summit__c-44_r16",
+  "x": -90112,
+  "y": 32768,
+  "size": 2048,
+  "height": 2600
+ },
+ {
+  "id": "bachelor-summit__c-44_r17",
+  "x": -90112,
+  "y": 34816,
+  "size": 2048,
+  "height": 2600
+ }
+]
