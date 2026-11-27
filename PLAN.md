@@ -19,6 +19,8 @@ Unchanged from Perth: render on Colin's Mac (WebGL needs a real GPU), teacher ca
 
 - [ ] Repo `cpdis/tinybend` (Colin creates it on GitHub; the Claude GitHub App installed on it). Copy the pipeline, keep `render/LICENSE-isometric-nyc`, add `cities/bend.json`, pstack and a `tinybend-mode` skill.
 - [ ] Fix `scripts/put-shots.py` so it uploads depth PNGs and camera sidecars, not colour only.
+- [ ] Ground height per shot. Perth used one `GROUND` height for the whole map; Bend's ground runs from about 1,000 m to 2,760 m. `render/grid.js` reads each shot's ground height from the Copernicus DEM (GLO-30, plus the geoid offset to ellipsoid heights), for both the area test and the depth range, and the range widens where a shot's relief is over 1 km. The probe showed depth clamped on up to the whole of a Bachelor shot without this.
+- [ ] Camera origin in `cities/bend.json`: 44.0582, -121.3153, 1,085 m (the probe's `camera.bend.js`).
 - [ ] Google Cloud project for Bend's renderer (not `tinyperth-maps`), key restricted to the Map Tiles API and localhost referrers, daily root-request cap, budget alert.
 - [ ] Modal Volume `tinybend`, reusing the `huggingface` and `gemini` secrets; `r2` for the new bucket.
 - [ ] R2 bucket `tinybend-tiles`, token scoped to it, public custom domain, CORS GET.
@@ -41,7 +43,13 @@ Seven spots, 2 × 2 shots of 2,048 px each (28 shots, about 6 minutes), on the r
 | Bachelor, West Village | Lodges, car parks, lift bases |
 | Bachelor, summit | Steep ground, the summit lift and whatever snow Google photographed |
 
-What to record per spot: mesh quality (true 3D, 2.5D or mush), coarse tiles, and the photo's season (snow on Bachelor? green or brown ground?). If Bachelor is mush the patch shrinks to the lodges and lower runs, or is dropped.
+**Done 2026-11-27** (`probe/RESULTS.md`, `probe/spots/`, under $0.10). 28 of 28 shots clean, 0 coarse or failed tiles.
+
+- Town, Pilot Butte, the forest by Phil's trails and Lava Butte: true 3D, as good as inner Perth. Dry summer photos.
+- The forest in the gap: 2.5D, close to mush, with haze from the source photos. Confirms the relief chart over the gap.
+- Bachelor: smooth 3D terrain with lodges, roads and lift huts, photographed in a late-spring melt: patchy snow over dark cinder. The summer map's Bachelor will show these snowfields; the winter repaint fills them in.
+- The two Bachelor spots fell in the same 2 × 2 window (they are only about 1.2 km apart), which shows the summit and Pine Marten but not West Village. West Village gets checked in the full render.
+- Depth was clamped on the mountain: the renderer's ±500 m depth range is centred on one height per frame. Fixed in Phase 0 below.
 
 ## Area
 
@@ -210,7 +218,7 @@ Hosting stays at $0: two seasons of about 230 km² come to about 1.4 GiB, plus a
 
 ## Risks
 
-- **Google's season.** If the Bachelor photo shows heavy snow, summer Bachelor will show it too; the summer teacher sentence may need to say where snow lies, measured from the render like water.
+- **Google's season.** The probe found Bachelor photographed in a late-spring melt, with patchy snow. Summer Bachelor keeps those snowfields; the summer snow check (snow drawn as water, cloud or sand) matters most there, and the teacher may need one measured sentence per frame on where snow lies, as for water.
 - **Google's terms**, as Perth: the separate GCP project keeps Perth and world.cpd.dev out of any suspension.
 - **Snow consistency across areas.** Pinning keeps joins matched, but snow brightness may drift between waves; the join guard (8 levels) applies to winter too.
 - **Bachelor mesh.** Lifts and towers may be mush in Google's mesh; check each lift landmark's render before training.
