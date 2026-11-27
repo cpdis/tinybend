@@ -1,15 +1,15 @@
-# Tiny Bend plan (draft, 2026-11-27)
+# Tiny Bend plan (draft, 2026-11-27; Colin's decisions of 2026-11-27 folded in)
 
 An isometric pixel-art map of Bend, Oregon, plus a separate Mt. Bachelor patch, drawn twice: once in summer and once in winter, with a toggle in the viewer. Built on the Tiny Perth pipeline (cpdis/tinyperth), copied into a new repo, cpdis/tinybend, with a city config added.
 
 The project ships two things, as Perth did: the map and a write-up of how it was made, built from `writeup/journal.md`.
 
-- **Area:** two boxes on one camera and one pixel grid. City about 132 km², Bachelor about 64 km². Not decided yet; see "Area".
+- **Area:** two boxes on one camera and one pixel grid. City about 166 km² (widened west to take in Phil's trails), Bachelor about 64 km², and a relief chart between them. Decided 2026-11-27.
 - **Camera:** Perth's, with a new origin: tilt 45°, yaw 15° (looking north), 0.293 m per pixel. Origin downtown Bend, 44.0582, -121.3153, 1,085 m above the WGS84 ellipsoid, so map pixel (0, 0) sits on the ground downtown.
-- **Seasons:** summer is drawn from Google's render. Winter is drawn from the finished summer map by a second LoRA, so both seasons share every pixel position. See "Winter".
+- **Seasons:** summer is drawn from Google's render. Winter is drawn from the finished summer map by a second LoRA, so both seasons share every pixel position. Decided 2026-11-27. See "Winter".
 - **Source data:** Google Photorealistic 3D Tiles on a new Google Cloud project (Phase 0).
 - **Compute:** Modal for everything after rendering, as Perth.
-- **Expected cost:** about $115 to $150 for summer and $95 to $130 for winter, so about $210 to $280 for both. A lean version (smaller teacher sets) is about $175 to $190. Hosting $0.
+- **Expected cost:** about $125 to $160 for summer and $100 to $140 for winter, so about $225 to $300 for both. A lean version (smaller teacher sets) is about $200 to $210. Hosting $0.
 
 ## Where each step runs
 
@@ -36,7 +36,7 @@ Seven spots, 2 × 2 shots of 2,048 px each (28 shots, about 6 minutes), on the r
 | Downtown and the Old Mill | Buildings, river, smokestacks: the town at its densest |
 | Pilot Butte | A cinder cone with a road spiralling up |
 | Ponderosa forest west of town (Phil's trails) | Canopy and singletrack, where the mountain bikers would go |
-| Lava flow by Lava Butte | Basalt, outside the city box: decides whether a lava patch is worth adding |
+| Lava flow by Lava Butte | Basalt, outside the map (no lava patch, decided 2026-11-27): a reference for the lava look only |
 | Forest in the gap, Cascade Lakes Highway | What the 25 km between the boxes looks like, for the gap decision |
 | Bachelor, West Village | Lodges, car parks, lift bases |
 | Bachelor, summit | Steep ground, the summit lift and whatever snow Google photographed |
@@ -49,16 +49,14 @@ Two boxes on one grid. Bachelor is about 30 km west-southwest of downtown, and a
 
 | Box | Edges (degrees) | Ground | Shots (about) | Draw cost per season |
 | --- | --- | --- | --- | --- |
-| City | 44.00 to 44.11 N, 121.385 to 121.25 W | 132 km² | 260 | $37 to $40 |
-| City, widened west to take in Phil's trails | 44.00 to 44.11 N, 121.42 to 121.25 W | 166 km² | 330 | $47 to $50 |
+| City (widened west to take in Phil's trails, chosen 2026-11-27) | 44.00 to 44.11 N, 121.42 to 121.25 W | 166 km² | 330 | $47 to $50 |
 | Bachelor | 43.949 to 44.021 N, 121.73 to 121.63 W | 64 km² | 130 | $18 to $20 |
-| Optional: Lava Butte and the lava flow | 43.895 to 43.935 N, 121.385 to 121.32 W | 23 km² | 45 | $7 |
 
-The city box runs from about Baker Road in the south to Cooley Road in the north, and from Shevlin Park to past the eastside subdivisions. It keeps the river from Farewell Bend to First Street Rapids, Pilot Butte, Awbrey Butte and the airport road. Edges get fixed after the probe, from city limits in OpenStreetMap.
+The city box runs from about Baker Road in the south to Cooley Road in the north, and from the Phil's trail network west of Shevlin Park to past the eastside subdivisions. No Lava Butte patch (decided 2026-11-27). It keeps the river from Farewell Bend to First Street Rapids, Pilot Butte, Awbrey Butte and the airport road. Edges get fixed after the probe, from city limits in OpenStreetMap.
 
 Draw cost is about $0.28 to $0.30 per km² of map on H100s, from Perth's ledger. Rendering is under $1 for all of it.
 
-**Gap.** Recommended: one viewer, one grid, and the gap filled with a relief chart drawn in code from the DEM (Perth's `look/edges.py`), in a summer and a winter tint, with a "Fly to Bachelor" button. The other choice is two maps in one viewer with a switch between them. Both are $0.
+**Gap.** Decided 2026-11-27: one viewer, one grid, and the gap filled with a relief chart drawn in code from the DEM (Perth's `look/edges.py`), in a summer and a winter tint, with a "Fly to Bachelor" button. $0.
 
 ## Phase 1: the summer look ($10 to $15, a day)
 
@@ -77,7 +75,7 @@ Google's tiles are photographed in one season, almost certainly summer, so winte
 | C. img2img over the summer map with no LoRA | Partial noise plus a "winter" prompt on the base model | Loose | Breaks the trained look | Cheap but poor |
 | D. Snow in code | Snow on up-facing surfaces from the depth pass's normals, masked by OpenStreetMap | Exact | Reads as a filter; pines and roofs look wrong | $0 |
 
-**Recommendation: B.** It is the only way that is both on the trained look and aligned for a toggle. It needs no new render, no Sentinel-2 pass and no new depth: winter reuses summer's render, depth, sidecars, labels and life-layer geometry. Its cost is that winter waits for summer, and any later summer patch needs a matching winter patch.
+**Chosen: B** (Colin, 2026-11-27). It is the only way that is both on the trained look and aligned for a toggle. It needs no new render, no Sentinel-2 pass and no new depth: winter reuses summer's render, depth, sidecars, labels and life-layer geometry. Its cost is that winter waits for summer, and any later summer patch needs a matching winter patch.
 
 ### How B runs
 
@@ -89,7 +87,7 @@ Google's tiles are photographed in one season, almost certainly summer, so winte
 
 ### Where snow goes
 
-Recommended: the day after a good storm, so the two seasons look as different as possible. Snow on everything in both boxes, except:
+Chosen (Colin, 2026-11-27): the day after a good storm, so the two seasons look as different as possible. Snow on everything in both boxes, except:
 
 - **Open water.** The Deschutes keeps flowing, so it stays open, dark water. Still ponds and small lakes freeze white (a hand list in `cities/bend.json`, because OSM can't tell them apart).
 - **Cleared roads and car parks.** Arterials and collectors from OSM are ploughed to wet asphalt with banks at the kerb. Residential streets get packed snow with tyre tracks. Ski area car parks are ploughed.
@@ -100,7 +98,18 @@ Depth by height, from the 30 m Copernicus DEM: the town (about 1,100 m) gets a f
 
 How the rules reach the picture: in the teacher prompt, one generated sentence per frame on where ground stays clear, built from OSM and the DEM, exactly as the water sentence is (no place names). In the LoRA, the control image already shows water and road class, so the rules are learned; the tinted-mask run tests whether it needs help. After drawing, the winter water repaint and a code check (below) hold the rest.
 
-The other choice is a typical January day in town: patchy snow in shade and on north faces, bare south-facing yards, full snow only at Bachelor. More realistic, much less distinct, and the patches are hard to keep consistent across areas.
+A typical patchy January was considered and not chosen: the drawn winter is the fresh storm. Patchy snow comes back in the viewer as a live state, below.
+
+### Live snow and weather
+
+The map has two drawn states, bare summer and fresh-storm winter. With the season on Live, the viewer shows what Bend has right now:
+
+- **Snow on the ground, per box.** Snow depth from Open-Meteo (free, keyless, read-only) for one point downtown and one at West Village, through `site/api/weather.js` beside the METAR, cached for an hour. Each box picks its own state: Bachelor is snowy from about November to June while town is often bare, so the town and Bachelor tile layers are clipped to their own boxes and switch separately.
+- **In-between snow** (a dusting, or a melt days after a storm). A third state built in code, $0: a "melt order" tile set baked once from the depth pass, the DEM and OSM, 8-bit like Perth's depth tiles, saying how early each pixel loses its snow. Roads, south-facing roofs and slopes, and sun-warmed open ground go first; north faces, shade under pines and snowbanks last. The viewer shows the winter tiles where the melt order is above a threshold set by snow depth, and summer below it, with a soft edge. Both tile sets are pixel-aligned, so the blend has no ghosting. About 0.3 GB more hosting. A later phase: the two drawn seasons ship first.
+- **Falling snow and rain** when Bend Municipal's METAR reports SN or RA (Redmond as fallback), drawn as particles over the map, with fog and low cloud from the METAR as Perth does.
+- **Real cloud** by day from GOES-West's visible band via NASA GIBS, as Perth's Himawari cloud: shadows and soft tops, METAR drawing at night or when the picture is stale.
+- **Night.** Lit windows, street lights and ski-area lights reflect off snow: the winter tiles get a brighter night glow than summer's.
+- Manual override stays: the toggle picks Summer, Winter or Live, and `?season=` links to one.
 
 ### Checks for winter
 
@@ -119,41 +128,32 @@ The other choice is a typical January day in town: patchy snow in shade and on n
 
 All in `places/bend.json` with `id`, `name`, `lat`, `lon`, `kind`. Coordinates are fixed from OSM in the repo setup thread. Landmarks need Colin's approval on a contact sheet before training, for each season's pairs.
 
-### Landmark candidates (Colin picks about 20)
+### Landmarks (picked 2026-11-27; Colin still approves each landmark's pairs on the contact sheet before training)
 
-**Downtown and the river**
+Colin asked for distinctive places only. Seventeen:
 
-- Mirror Pond, Drake Park and the footbridge
-- Downtown: Wall and Bond Streets, the Tower Theatre
-- The Old Mill District: the three smokestacks, the old mill buildings and the footbridges
-- The amphitheater in the Old Mill
-- Bend Whitewater Park at McKay Park, under the Colorado Avenue bridge
-- Riverbend Park and Farewell Bend Park (the summer float's put-in)
-- First Street Rapids and the river canyon north of downtown
+**Town**
 
-**Buttes and campuses**
-
-- Pilot Butte and its summit road
-- Awbrey Butte and Central Oregon Community College
-- OSU-Cascades campus and its pumice-mine site
-- St. Charles hospital
-
-**Parks and other**
-
-- Pine Nursery Park
-- Juniper Park and the swim centre
-- A roundabout with its public art (Bend has dozens; pick one or two)
-- Deschutes Brewery's public house or the Simpson Avenue brewery (if Colin wants one)
+1. Mirror Pond, Drake Park and its footbridge
+2. Downtown: Wall and Bond Streets and the Tower Theatre
+3. The Old Mill District's three smokestacks, mill buildings and river footbridges
+4. The amphitheater in the Old Mill
+5. Bend Whitewater Park at McKay Park, under the Colorado Avenue bridge
+6. Riverbend and Farewell Bend Parks, where the summer float puts in
+7. Pilot Butte and its spiral summit road
+8. Awbrey Butte and Central Oregon Community College
+9. OSU-Cascades and its old pumice-mine site
+10. Pine Nursery Park
+11. Phil's Trailhead and the start of the trail network
+12. One roundabout with its public art (picked from OSM `artwork` nodes on roundabouts after the probe)
 
 **Bachelor**
 
-- West Village lodge and base
-- Sunrise lodge and the tubing hill
-- Pine Marten Lodge (mid-mountain)
-- The Summit Express lift and the summit
-- The Northwest Express and Outback lifts
-
-**Only if the Lava Butte patch is added:** Lava Butte, its road, and the Lava Lands visitor centre.
+13. West Village lodge and base area
+14. Sunrise lodge and the tubing hill
+15. Pine Marten Lodge
+16. The summit and the Summit Express lift
+17. The Northwest Express lift
 
 ### Hard places (from OSM, about ten each)
 
@@ -185,7 +185,7 @@ The season toggle switches both the tiles and the life:
 | Golfers; hikers on Bachelor's summit trail | Falling snow when the METAR reports snow |
 | Fourth of July fireworks over Pilot Butte | New Year's Eve; any winter event Colin names |
 
-Default season follows the date (winter from December to March, say), with `?season=summer|winter` and a toggle in the Life panel that crossfades the two tile sets without moving the view. US holidays replace Australian event days.
+The season toggle offers Summer, Winter and Live (the default, from real snow depth; see "Live snow and weather"), with `?season=summer|winter|live`. Switching crossfades the two tile sets without moving the view. US holidays replace Australian event days.
 
 ## Cost
 
@@ -195,14 +195,14 @@ Default season follows the date (winter from December to March, say), with `?sea
 | Look choice (Gemini) | $10 to $15 | $5 to $8 |
 | Teacher pairs | $40 to $60 (250 to 350 frames) | $25 to $45 (150 to 250 frames) |
 | Pilot LoRA | $2 to $5 | $2 to $5 |
-| Draw city box (132 km²) | $37 to $40 | $37 to $40 |
+| Draw city box (166 km²) | $47 to $50 | $47 to $50 |
 | Draw Bachelor (64 km²) | $18 to $20 | $18 to $20 |
 | Tile check and patch redraws | $5 to $10 | $5 to $10 |
-| **Total** | **about $115 to $150** | **about $95 to $130** |
+| **Total** | **about $125 to $160** | **about $100 to $140** |
 
-Both seasons: about $210 to $280. With 200 summer pairs and 150 winter pairs: about $175 to $190. Add about $10 a season for the trails strip and $7 a season for the Lava Butte patch. Each paid run is still asked for on its own, with its estimate. Modal's two limits need room for each drawing phase: about $60 per season, so the December limits should be checked before the summer draw.
+Both seasons: about $225 to $300. With 200 summer pairs and 150 winter pairs: about $200 to $210. Live snow, melt order, cloud and weather are code and free data: $0. Each paid run is still asked for on its own, with its estimate. Modal's two limits need room for each drawing phase: about $70 per season, so the December limits should be checked before the summer draw.
 
-Hosting stays at $0: two seasons of about 200 km² come to about 1.2 GiB of tiles, well inside R2's free 10 GB.
+Hosting stays at $0: two seasons of about 230 km² come to about 1.4 GiB, plus about 0.3 GB of melt-order tiles, of tiles, well inside R2's free 10 GB.
 
 ## Order
 
