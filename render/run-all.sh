@@ -2,7 +2,7 @@
 # Renders every shot in a frames file, keeps the Mac awake, and logs network traffic.
 # Safe to run again: finished shots are skipped. Runs passes until none are left.
 #
-#   nohup render/run-all.sh render/frames/perth.json render/out/perth &
+#   nohup render/run-all.sh render/frames/bend.json render/out/bend &
 set -u
 frames=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 out=$(mkdir -p "$2" && cd "$2" && pwd)
@@ -27,8 +27,8 @@ for pass in 1 2 3 4 5 6; do
   echo "pass $pass finished, $remaining shots left" >> "$out/render.log"
   [ "$remaining" = "0" ] && break
   # A pass that ends with shots left is worth a look. Say so on the Mac's screen.
-  osascript -e "display notification \"$remaining shots left after pass $pass. See render.log.\" with title \"Tiny Perth render\"" 2>/dev/null
+  osascript -e "display notification \"$remaining shots left after pass $pass. See render.log.\" with title \"Tiny Bend render\"" 2>/dev/null
   sleep 600 # Shots are left only when Google kept refusing tiles. Give the limit time to clear.
 done
 rm -f "$out/render.running"
-osascript -e "display notification \"Render ended with $(left) shots left.\" with title \"Tiny Perth render\"" 2>/dev/null
+osascript -e "display notification \"Render ended with $(left) shots left.\" with title \"Tiny Bend render\"" 2>/dev/null

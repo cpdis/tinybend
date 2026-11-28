@@ -7,7 +7,7 @@ import modal
 
 from .common import failures, image, volume
 
-app = modal.App("tinyperth-check")
+app = modal.App("tinybend-check")
 
 
 @app.function(image=image, volumes={"/vol": volume}, timeout=600)

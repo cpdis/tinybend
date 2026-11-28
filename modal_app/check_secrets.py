@@ -5,7 +5,7 @@
 
 import modal
 
-app = modal.App("tinyperth-check-secrets")
+app = modal.App("tinybend-check-secrets")
 
 # One small file from each model the Phase 2 race needs. A gated model answers 401 or 403 until
 # its terms are accepted on its Hugging Face page.

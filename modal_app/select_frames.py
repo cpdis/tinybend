@@ -1,7 +1,7 @@
 """Picks the general training frames: groups every candidate quarter by how it looks, then
 takes the same number from each group, so rare looks get as many examples as common ones.
 
-    node places/candidates.js render/frames/perth.json places/quarter-candidates.json
+    node places/candidates.js render/frames/bend.json places/quarter-candidates.json
     modal run -m modal_app.select_frames
 
 Writes places/general-frames.json on the Mac, and a sheet per group on the Volume in /sets/v1.
@@ -14,7 +14,7 @@ import modal
 
 from .common import volume
 
-app = modal.App("tinyperth-select-frames")
+app = modal.App("tinybend-select-frames")
 
 image = modal.Image.debian_slim(python_version="3.12").pip_install(
     "torch==2.9.1", "transformers==4.57.1", "pillow==12.0.0", "scikit-learn==1.7.2", "numpy==2.3.4"
@@ -46,7 +46,7 @@ def select(candidates: list[dict]) -> dict:
     vectors, order, thumbs = [], [], {}
     for n, (shot, frames) in enumerate(sorted(by_shot.items())):
         col, row = (int(v[1:]) for v in shot.split("_"))
-        picture = Image.open(f"/vol/renders/perth/{shot}.png").convert("RGB")
+        picture = Image.open(f"/vol/renders/bend/{shot}.png").convert("RGB")
         crops = []
         for f in frames:
             left, top = f["x"] - col * SHOT, f["y"] - row * SHOT

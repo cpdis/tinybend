@@ -135,7 +135,7 @@ out tags center bb;`;
 
 async function osmFeatures() {
   if (existsSync(FEATURES)) return JSON.parse(readFileSync(FEATURES, "utf8")).elements;
-  const reply = await fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: new URLSearchParams({ data: FEATURE_QUERY }), headers: { "User-Agent": "tinyperth/0.1" } });
+  const reply = await fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: new URLSearchParams({ data: FEATURE_QUERY }), headers: { "User-Agent": "tinybend/0.1" } });
   if (!reply.ok) throw new Error(`Overpass said ${reply.status}`);
   const data = await reply.json();
   writeFileSync(FEATURES, JSON.stringify(data));

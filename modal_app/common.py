@@ -1,8 +1,8 @@
-"""What every Tiny Perth job on Modal shares: the Volume, the Node image and the drawing checks."""
+"""What every Tiny Bend job on Modal shares: the Volume, the Node image and the drawing checks."""
 
 import modal
 
-volume = modal.Volume.from_name("tinyperth", create_if_missing=True)
+volume = modal.Volume.from_name("tinybend", create_if_missing=False)
 
 # Node for look/*.js, with sharp where those scripts look for it (../render/node_modules).
 image = (

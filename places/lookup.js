@@ -53,7 +53,7 @@ const places = [];
 for (const [id, name, query, kind, extra = {}] of PLACES) {
   if (!cache[query]) {
     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&bounded=1&viewbox=${VIEWBOX}&q=${encodeURIComponent(query)}`;
-    const found = await (await fetch(url, { headers: { "User-Agent": "tinyperth/0.1" } })).json();
+    const found = await (await fetch(url, { headers: { "User-Agent": "tinybend/0.1" } })).json();
     cache[query] = found[0] ? { lat: +found[0].lat, lon: +found[0].lon, osm: found[0].display_name } : null;
     writeFileSync(CACHE, JSON.stringify(cache, null, 2));
     await new Promise((r) => setTimeout(r, 1100)); // Nominatim allows one request a second.

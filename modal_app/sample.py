@@ -7,7 +7,7 @@ x, y and size are in map pixels. The area's picture goes to /areas/<name>.png on
 next to the render it was drawn from and a small file with its position. With --pin, the part
 that overlaps a finished area is kept exactly, and the rest is drawn to continue it. To pin to
 several areas, give their names with commas between, in the order they were drawn.
---renders names another folder of shots under /renders on the Volume. The default is perth.
+--renders names another folder of shots under /renders on the Volume. The default is bend.
 """
 
 import modal
@@ -17,9 +17,9 @@ from .joint import CELL, SOFT, STRIDE, WINDOW
 from .plan import SHOT, shots_under
 from .train import CAPTION, MODELS, image as train_image
 
-app = modal.App("tinyperth-sample")
+app = modal.App("tinybend-sample")
 
-image = train_image.add_local_file("modal_app/joint.py", "/root/ai-toolkit/tinyperth_joint.py")
+image = train_image.add_local_file("modal_app/joint.py", "/root/ai-toolkit/tinybend_joint.py")
 
 def content_mask(x: int, y: int, size: int, renders: str):
     """White where the area has a render: under every shot of the folder that exists."""
@@ -112,7 +112,7 @@ def join_check(drawn, pinned, fade) -> float:
 
 
 @app.function(image=image, gpu="H100", memory=32768, max_containers=10, volumes={"/vol": volume}, secrets=[modal.Secret.from_name("huggingface")], timeout=3 * 60 * 60)
-def draw(name: str, lora: str, model: str, x: int, y: int, size: int, steps: int, seed: int, pin: str, renders: str = "perth") -> str:
+def draw(name: str, lora: str, model: str, x: int, y: int, size: int, steps: int, seed: int, pin: str, renders: str = "bend") -> str:
     import json
     import subprocess
     import time
@@ -155,7 +155,7 @@ def draw(name: str, lora: str, model: str, x: int, y: int, size: int, steps: int
             own = out / f"{neighbour}.own.png"
             # A neighbour at the edge of an earlier, smaller map had no render under part of
             # itself, and drew nothing there. Only the part it had a render for is pinned.
-            had = content_mask(at["x"], at["y"], at["size"], at.get("renders", "perth")).crop(inside)
+            had = content_mask(at["x"], at["y"], at["size"], at.get("renders", "bend")).crop(inside)
             pinned.paste(piece, (box[0] - x, box[1] - y), ImageChops.multiply(Image.open(own).convert("L").crop(inside), had) if own.exists() else had)
             mask.paste(had, (box[0] - x, box[1] - y), had)
         pinned_path, mask_path = f"/tmp/{name}.pinned.png", f"/tmp/{name}.mask.png"
@@ -205,9 +205,9 @@ def draw(name: str, lora: str, model: str, x: int, y: int, size: int, steps: int
     # Draw on the machine's own disk, and copy to the Volume only when the picture is whole.
     scratch = Path(f"/tmp/{name}.png")
     run = (
-        "import tinyperth_joint, sys\n"
+        "import tinybend_joint, sys\n"
         "from toolkit.job import get_job\n"
-        f"tinyperth_joint.install({str(scratch)!r}, {pinned_path!r}, {mask_path!r}, {content_path!r})\n"
+        f"tinybend_joint.install({str(scratch)!r}, {pinned_path!r}, {mask_path!r}, {content_path!r})\n"
         f"job = get_job({str(config)!r}, None)\n"
         "job.run()\n"
         "job.cleanup()\n"
@@ -243,7 +243,7 @@ def draw(name: str, lora: str, model: str, x: int, y: int, size: int, steps: int
 
 
 @app.local_entrypoint()
-def main(name: str, lora: str, x: int, y: int, size: int, model: str = "klein", steps: int = 25, seed: int = 0, pin: str = "", renders: str = "perth"):
+def main(name: str, lora: str, x: int, y: int, size: int, model: str = "klein", steps: int = 25, seed: int = 0, pin: str = "", renders: str = "bend"):
     # The shifted grid only moves every window edge when the area is whole strides past one window.
     cells = size // CELL
     if size % CELL or (cells - WINDOW) % STRIDE:

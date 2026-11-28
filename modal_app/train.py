@@ -1,6 +1,6 @@
 """Trains one LoRA on the teacher pairs with ai-toolkit, on a rented GPU.
 
-    modal volume put tinyperth look/out/train/v1 /train/v1
+    modal volume put tinybend look/out/train/v1 /train/v1
     modal run --detach -m modal_app.train --name klein-v1-s0 --steps 2000
 
 Outputs go to /loras/<name> on the Volume: checkpoints, and a drawing of each held-out sample
@@ -11,10 +11,10 @@ import modal
 
 from .common import volume
 
-app = modal.App("tinyperth-train")
+app = modal.App("tinybend-train")
 
 AI_TOOLKIT_COMMIT = "4a7f285"  # Pinned, so a rerun months later trains with the same code.
-CAPTION = "redraw the image as <isometric perth pixel art>"  # Keep in step with look/trainset.js.
+CAPTION = "redraw the image as <isometric bend pixel art>"  # Keep in step with look/trainset.js.
 
 image = (
     modal.Image.debian_slim(python_version="3.11")

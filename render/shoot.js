@@ -5,7 +5,9 @@
 // A shot whose sidecar already exists is skipped, so a stopped run carries on where it left off.
 //
 // A frames file is a list of { id, lat, lon, height, size } or { id, x, y, size }.
-// height is the ground's height above the WGS84 ellipsoid, in metres.
+// height is the ground's height above the WGS84 ellipsoid, in metres. A frame from
+// render/grid.js also carries near and far, its depth range from the DEM: shots on Bend's
+// buttes and on Mt. Bachelor need a range set by their own ground (see grid.js).
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -107,7 +109,7 @@ try {
       frame.x !== undefined
         ? { id: frame.id, x: frame.x, y: frame.y, size: frame.size }
         : shotAt(frame.id, frame.lat, frame.lon, frame.height ?? 0, frame.size);
-    const range = depthRange(shot, frame.height ?? 0);
+    const range = frame.near !== undefined ? { near: frame.near, far: frame.far } : depthRange(shot, frame.height ?? 0);
     const started = Date.now();
     // A shot with failed tiles is retried after a growing wait, which lets a rate limit clear.
     let result;

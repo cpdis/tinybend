@@ -2,7 +2,7 @@
 // flat colour Google shows far out to sea) keeps one frame, not five. The teacher learns
 // nothing from five drawings of a flat blue square.
 //
-//   node places/trim.js render/out/perth places/general-frames.json
+//   node places/trim.js render/out/bend places/general-frames.json
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { cropWindow } from "../render/crop.js";

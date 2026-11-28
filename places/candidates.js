@@ -1,7 +1,7 @@
 // Lists every 512 px quarter of the full render that a general training frame may come from:
 // all of them, less any that touch a test place.
 //
-//   node places/candidates.js render/frames/perth.json places/quarter-candidates.json
+//   node places/candidates.js render/frames/bend.json places/quarter-candidates.json
 import { readFileSync, writeFileSync } from "node:fs";
 import { testPlacesTouched } from "./test-places.js";
 

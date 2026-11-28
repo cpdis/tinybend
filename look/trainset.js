@@ -7,7 +7,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
-import { project } from "../render/camera.js";
+import { groundProjector } from "../render/dem.js";
 import { cropWindow } from "../render/crop.js";
 import { TEACHER_VARIANT } from "./prompts.js";
 
@@ -16,9 +16,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const places = (name) => JSON.parse(readFileSync(join(here, "..", "places", name), "utf8"));
 
 // One fixed caption for every pair. The made-up token is what the LoRA attaches the style to.
-export const CAPTION = "redraw the image as <isometric perth pixel art>";
+export const CAPTION = "redraw the image as <isometric bend pixel art>";
 const BORDER = 2; // Pixels of red around each render, so the model can tell input from output.
-const GROUND = -15;
+const groundAt = await groundProjector();
 const SAMPLE = 1024; // Size of a held-out sample frame, in map pixels.
 
 /** The render at map scale, with its red border painted over its outermost pixels. */
@@ -46,11 +46,11 @@ for (const frame of places("set-v1.json")) {
 
 // Held-out samples: the four test places, which no training frame touches, and two landmarks
 // for comparison with ground the model has seen. Each run draws these at every checkpoint.
-const all = places("perth.json");
+const all = places("bend.json");
 const samples = [...all.filter((p) => p.kind === "test"), ...all.filter((p) => ["optus-stadium", "narrows"].includes(p.id))];
 for (const p of samples) {
-  const c = project(p.lat, p.lon, GROUND);
-  const png = await cropWindow("render/out/perth", { x: Math.round(c.x - SAMPLE / 2), y: Math.round(c.y - SAMPLE / 2), size: SAMPLE });
+  const c = groundAt(p.lat, p.lon);
+  const png = await cropWindow("render/out/bend", { x: Math.round(c.x - SAMPLE / 2), y: Math.round(c.y - SAMPLE / 2), size: SAMPLE });
   await (await control(png, SAMPLE)).toFile(join(out, "samples", `${p.kind}-${p.id}.png`));
 }
 console.log(`${count} training pairs, ${samples.length} sample frames`);

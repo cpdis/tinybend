@@ -2,14 +2,14 @@
 # Runs rclone against the tiles bucket on Cloudflare R2, with the keys from the ignored .env.
 # The keys are never printed. The remote is called "r2".
 #
-#   scripts/r2 lsd r2:tinyperth-tiles                 list the version folders
+#   scripts/r2 lsd r2:tinybend-tiles                 list the version folders
 #   scripts/r2 publish look/out/map/tiles/v1 v1       upload a finished pyramid as a version
 #
 # publish never changes a file that is already in the bucket (--immutable), so a published
 # version cannot be overwritten. Fixes ship as a new version or a patch folder.
 set -eu
 cd "$(dirname "$0")/.."
-BUCKET=tinyperth-tiles
+BUCKET=tinybend-tiles
 
 # Read one key from .env without printing it.
 key() { sed -n "s/^$1=//p" .env | head -1; }

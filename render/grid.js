@@ -1,51 +1,32 @@
-// Lays the shot grid over the whole map area and writes it as a frames file for shoot.js.
-// Every shot is a whole number of shots from pixel (0, 0), so neighbours meet with no gap or overlap.
+// Lays the shot grid over the map's areas and writes it as a frames file for shoot.js.
+// Every shot is a whole number of shots from pixel (0, 0), so neighbours meet with no gap or
+// overlap, and the city and Mt. Bachelor share one grid (cities/bend.json, areas).
 //
-//   node render/grid.js [--size 2048] [--out render/frames/perth.json] [--svg writeup/images/full-render/grid.svg]
-//   node render/grid.js --area greater --skip render/frames/perth.json --out render/frames/greater.json
+//   node render/grid.js [--area city|bachelor|all] [--size 2048] [--out render/frames/bend.json]
+//                       [--skip render/frames/old.json] [--svg writeup/images/<step>/grid.svg]
 //
-// --area names one of AREAS. --skip names a frames file whose shots are left out, so a larger
-// map adds only the shots it does not have yet.
+// Bend's ground runs from about 1,000 m to 2,760 m, so one ground height for the whole map
+// (Perth's GROUND) no longer works. Each shot's ground comes from the Copernicus DEM
+// (render/dem.js), found where each view ray meets the DEM:
+//   - the area test uses the true ground point under each lattice pixel, so a shot on the
+//     mountain is kept or dropped by where its pixels really land;
+//   - the depth range (near, far) spans the lattice's ground plus margins, at least
+//     minDepthSpanMetres wide, and wider where the shot's relief needs it.
+// Frames carry height (median ground), relief, near and far; shoot.js uses near and far.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { project, unproject, depthAtHeight } from "./camera.js";
+import { CITY, loadDem } from "./dem.js";
 
-// The map's edges, in degrees: Fremantle in the south to Scarborough in the north, a strip of
-// ocean in the west to Burswood in the east. About 20 km by 17 km. See PLAN.md, "Area".
-export const AREA = { south: -32.07, north: -31.885, west: 115.735, east: 115.91 };
+const LATTICE = 16; // Lattice steps across a shot: 17 x 17 points, 128 px (about 38 m) apart at 2,048 px.
+
 const box = (a) => [[a.north, a.west], [a.north, a.east], [a.south, a.east], [a.south, a.west]];
-// Each area is a list of outlines, and each outline is a list of [lat, lon] corners.
-// "greater" runs from Mindarie in the north to Henderson in the south, and east past John
-// Forrest National Park. Its west side follows the coast about 1.4 km out to sea, so the
-// sea is not rendered for nothing. Rottnest Island is a second outline.
-const AREAS = {
-  perth: [box(AREA)],
-  greater: [
-    [
-      [-31.675, 115.68], [-31.675, 116.13], [-32.19, 116.13], [-32.19, 115.75], [-32.15, 115.747], [-32.1, 115.742],
-      [-32.055, 115.725], [-32.0, 115.735], [-31.95, 115.738], [-31.89, 115.737], [-31.82, 115.72], [-31.75, 115.71],
-    ],
-    box({ south: -32.04, north: -31.98, west: 115.44, east: 115.57 }),
-  ],
-};
-// Typical ground height above the WGS84 ellipsoid, in metres. Sea level here is about -31,
-// and most of the area sits 0 to 40 m above the sea. It only centres each shot's depth range.
-export const GROUND = -15;
-
-function arg(name, fallback) {
-  const i = process.argv.indexOf(name);
-  return i >= 0 ? process.argv[i + 1] : fallback;
-}
-
-const size = Number(arg("--size", 2048));
-const out = arg("--out", "render/frames/perth.json");
-const svgPath = arg("--svg", null);
-const outlines = AREAS[arg("--area", "perth")];
-const skipPath = arg("--skip", null);
-const skip = new Set(skipPath ? JSON.parse(readFileSync(skipPath, "utf8")).map((f) => f.id) : []);
+/** Each area is a list of outlines, and each outline is a list of [lat, lon] corners. */
+export const AREAS = Object.fromEntries(Object.entries(CITY.areas).map(([name, a]) => [name, a.outlines ?? [box(a.box)]]));
 
 /** True when the point is inside the outline: a ray from it crosses the edge an odd number of times. */
-function inOutline(lat, lon, outline) {
+export function inOutline(lat, lon, outline) {
   let inside = false;
   for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
     const [[latA, lonA], [latB, lonB]] = [outline[i], outline[j]];
@@ -54,46 +35,152 @@ function inOutline(lat, lon, outline) {
   return inside;
 }
 
-/** True when a pixel's ground point lies inside the area. */
-function inArea(x, y) {
-  const p = unproject(x, y, depthAtHeight(x, y, GROUND));
-  return outlines.some((outline) => inOutline(p.lat, p.lon, outline));
-}
-
-// The outlines' corners in pixel space. The camera is turned 15 degrees, so a box is tilted there.
-const shapes = outlines.map((outline) => outline.map(([lat, lon]) => project(lat, lon, GROUND)));
-const corners = shapes.flat();
-const cols = corners.map((c) => Math.floor(c.x / size));
-const rows = corners.map((c) => Math.floor(c.y / size));
-
-// Keep a shot when any point of a 5 x 5 lattice across it is inside the area.
-const frames = [];
-for (let row = Math.min(...rows); row <= Math.max(...rows); row++) {
-  for (let col = Math.min(...cols); col <= Math.max(...cols); col++) {
-    let inside = false;
-    for (let j = 0; j <= 4 && !inside; j++) {
-      for (let i = 0; i <= 4 && !inside; i++) inside = inArea((col + i / 4) * size, (row + j / 4) * size);
+/**
+ * Where the view ray through pixel (x, y) meets the ground, as { lat, lon, height, depth }, or
+ * null off the DEM. A fixed-point search: guess a height, find where the ray reaches it, read
+ * the DEM there, repeat. Damped after a few steps so it settles on slopes near 45 degrees too.
+ */
+export function groundUnder(x, y, dem, start = CITY.camera.origin.height) {
+  let h = start;
+  let p = null;
+  for (let i = 0; i < 16; i++) {
+    const depth = depthAtHeight(x, y, h);
+    p = unproject(x, y, depth);
+    const ground = dem.height(p.lat, p.lon);
+    if (ground === null) return null;
+    const next = i < 4 ? ground : (h + ground) / 2;
+    if (Math.abs(next - h) < 0.25) {
+      h = next;
+      break;
     }
-    if (inside && !skip.has(`c${col}_r${row}`)) frames.push({ id: `c${col}_r${row}`, x: col * size, y: row * size, size, height: GROUND });
+    h = next;
   }
+  const depth = depthAtHeight(x, y, h);
+  return { ...unproject(x, y, depth), height: h, depth };
 }
 
-mkdirSync(dirname(out), { recursive: true });
-writeFileSync(out, `${JSON.stringify(frames)}\n`);
-const span = (v) => Math.max(...v) - Math.min(...v) + 1;
-console.log(`${frames.length} shots of ${size} px in a ${span(cols)} x ${span(rows)} grid, ${((frames.length * size * size) / 1e9).toFixed(2)} billion pixels`);
+/**
+ * Ground and depth range for a shot window, from a lattice of ground points across it.
+ * Returns { points, height, relief, near, far }, or null if the window is wholly off the DEM.
+ */
+export function shotGround(x0, y0, size, dem, g = CITY.ground) {
+  const points = [];
+  let start = CITY.camera.origin.height;
+  for (let j = 0; j <= LATTICE; j++) {
+    for (let i = 0; i <= LATTICE; i++) {
+      const x = x0 + (i / LATTICE) * size;
+      const y = y0 + (j / LATTICE) * size;
+      const p = groundUnder(x, y, dem, start);
+      if (p) {
+        points.push({ x, y, ...p });
+        start = p.height; // Neighbours are close in height: a good first guess.
+      }
+    }
+  }
+  if (!points.length) return null;
+  const heights = points.map((p) => p.height).sort((a, b) => a - b);
+  // Higher ground is nearer the camera: near from the top of each point's margin, far from the bottom.
+  let near = Math.min(...points.map((p) => depthAtHeight(p.x, p.y, p.height + g.depthAboveMetres)));
+  let far = Math.max(...points.map((p) => depthAtHeight(p.x, p.y, p.height - g.depthBelowMetres)));
+  if (far - near < g.minDepthSpanMetres) {
+    const grow = (g.minDepthSpanMetres - (far - near)) / 2;
+    near -= grow;
+    far += grow;
+  }
+  return {
+    points,
+    height: Math.round(heights[heights.length >> 1] * 10) / 10,
+    relief: Math.round(heights[heights.length - 1] - heights[0]),
+    near: Math.round(near * 100) / 100,
+    far: Math.round(far * 100) / 100,
+  };
+}
 
-if (svgPath) {
-  // A small picture of the grid for the write-up: one square per shot, with the area's outline.
-  const k = 6 / size; // 6 SVG units per shot.
-  const [minX, minY] = [Math.min(...cols) * size, Math.min(...rows) * size];
-  const at = (x, y) => [(x - minX) * k + 10, (y - minY) * k + 10];
-  const squares = frames.map((f) => { const [x, y] = at(f.x, f.y); return `<rect x="${x}" y="${y}" width="5.4" height="5.4"/>`; }).join("");
-  const outline = shapes.map((shape) => `<polygon points="${shape.map((c) => at(c.x, c.y).map((v) => v.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="#b4452c" stroke-width="1.2"/>`).join("");
-  const [w, h] = [span(cols) * 6 + 20, span(rows) * 6 + 20];
-  mkdirSync(dirname(svgPath), { recursive: true });
-  writeFileSync(
-    svgPath,
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h + 22}" font-family="Helvetica, Arial, sans-serif" font-size="9"><rect width="100%" height="100%" fill="#ffffff"/><g fill="#9fd3d6">${squares}</g>${outline}<text x="10" y="${h + 14}" fill="#17211f">${frames.length} shots of ${size} px. Red: the map area. Each square is ${(size * 0.293).toFixed(0)} m wide on screen.</text></svg>\n`,
-  );
+/** The frames for the named areas: every shot with a lattice ground point inside an area. */
+export function layGrid(names, dem, size = CITY.shotSize, skip = new Set()) {
+  const frames = [];
+  const seen = new Set();
+  for (const name of names) {
+    const outlines = AREAS[name];
+    if (!outlines) throw new Error(`no area "${name}" in cities/bend.json (have ${Object.keys(AREAS).join(", ")})`);
+    // The outline's corners in pixel space at the area's lowest and highest ground: high ground
+    // shows up higher on screen, so the candidate range covers both.
+    const corners = [];
+    for (const outline of outlines) {
+      for (const [lat, lon] of outline) for (const h of [900, 2900]) corners.push(project(lat, lon, h));
+    }
+    const cols = corners.map((c) => Math.floor(c.x / size));
+    const rows = corners.map((c) => Math.floor(c.y / size));
+    for (let row = Math.min(...rows) - 1; row <= Math.max(...rows) + 1; row++) {
+      for (let col = Math.min(...cols) - 1; col <= Math.max(...cols) + 1; col++) {
+        const id = `c${col}_r${row}`;
+        if (seen.has(id) || skip.has(id)) continue;
+        const ground = shotGround(col * size, row * size, size, dem);
+        if (!ground) continue;
+        if (!ground.points.some((p) => outlines.some((o) => inOutline(p.lat, p.lon, o)))) continue;
+        seen.add(id);
+        const { height, relief, near, far } = ground;
+        frames.push({ id, area: name, x: col * size, y: row * size, size, height, relief, near, far });
+      }
+    }
+  }
+  return frames;
+}
+
+function arg(name, fallback) {
+  const i = process.argv.indexOf(name);
+  return i >= 0 ? process.argv[i + 1] : fallback;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const size = Number(arg("--size", CITY.shotSize));
+  const out = arg("--out", "render/frames/bend.json");
+  const svgPath = arg("--svg", null);
+  const area = arg("--area", "all");
+  const names = area === "all" ? Object.keys(AREAS) : area.split(",");
+  const skipPath = arg("--skip", null);
+  const skip = new Set(skipPath ? JSON.parse(readFileSync(skipPath, "utf8")).map((f) => f.id) : []);
+
+  const dem = await loadDem();
+  const frames = layGrid(names, dem, size, skip);
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, `${JSON.stringify(frames)}\n`);
+  for (const name of names) {
+    const mine = frames.filter((f) => f.area === name);
+    const hs = mine.map((f) => f.height);
+    const wide = mine.filter((f) => f.far - f.near > CITY.ground.minDepthSpanMetres + 0.01).length;
+    console.log(
+      `${name}: ${mine.length} shots of ${size} px, ground ${Math.min(...hs).toFixed(0)} to ${Math.max(...hs).toFixed(0)} m, ` +
+        `most relief ${Math.max(...mine.map((f) => f.relief))} m, ${wide} with a depth range wider than ${CITY.ground.minDepthSpanMetres} m`,
+    );
+  }
+  console.log(`${frames.length} shots in all, ${((frames.length * size * size) / 1e9).toFixed(2)} billion pixels`);
+
+  if (svgPath) {
+    // A small picture of the grid for the write-up: one square per shot, shaded by ground height,
+    // with each area's outline at its median ground height.
+    const k = 6 / size; // 6 SVG units per shot.
+    const xs = frames.map((f) => f.x);
+    const ys = frames.map((f) => f.y);
+    const [minX, minY] = [Math.min(...xs), Math.min(...ys)];
+    const at = (x, y) => [(x - minX) * k + 10, (y - minY) * k + 10];
+    const [lo, hi] = [Math.min(...frames.map((f) => f.height)), Math.max(...frames.map((f) => f.height))];
+    const shade = (h) => {
+      const t = (h - lo) / Math.max(1, hi - lo);
+      const mix = (a, b) => Math.round(a + (b - a) * t);
+      return `rgb(${mix(159, 120)},${mix(211, 110)},${mix(214, 150)})`;
+    };
+    const squares = frames.map((f) => { const [x, y] = at(f.x, f.y); return `<rect x="${x}" y="${y}" width="5.4" height="5.4" fill="${shade(f.height)}"/>`; }).join("");
+    const outlines = names.flatMap((name) => {
+      const mine = frames.filter((f) => f.area === name).map((f) => f.height).sort((a, b) => a - b);
+      const h = mine[mine.length >> 1];
+      return AREAS[name].map((o) => `<polygon points="${o.map(([lat, lon]) => at(project(lat, lon, h).x, project(lat, lon, h).y).map((v) => v.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="#b4452c" stroke-width="1.2"/>`);
+    }).join("");
+    const [w, h] = [(Math.max(...xs) - minX) * k + 26, (Math.max(...ys) - minY) * k + 26];
+    mkdirSync(dirname(svgPath), { recursive: true });
+    writeFileSync(
+      svgPath,
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h + 22}" font-family="Helvetica, Arial, sans-serif" font-size="9"><rect width="100%" height="100%" fill="#ffffff"/>${squares}${outlines}<text x="10" y="${h + 14}" fill="#17211f">${frames.length} shots of ${size} px, darker where the ground is higher (${lo.toFixed(0)} to ${hi.toFixed(0)} m). Red: the map areas.</text></svg>\n`,
+    );
+  }
 }

@@ -14,3 +14,6 @@ life/out/
 tests/life-diff/out/
 tests/perf/out/
 __pycache__/
+
+# DEM tiles (render/dem.js fetch)
+render/dem/

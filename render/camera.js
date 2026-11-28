@@ -5,8 +5,10 @@
 // Every shot is a whole-pixel window on this space, so shots line up exactly.
 
 export const CAMERA = {
-  // Perth CBD on the WGS84 ellipsoid. The map's projection hangs off this point.
-  origin: { lat: -31.9523, lon: 115.8613, height: 0 },
+  // Downtown Bend on the WGS84 ellipsoid. The map's projection hangs off this point.
+  // Kept in step with cities/bend.json (camera) by tests/test_city.mjs: the browser renderer
+  // imports this file, so it cannot read the JSON from disk.
+  origin: { lat: 44.0582, lon: -121.3153, height: 1085 },
   tiltDeg: 45, // Down from the horizon.
   yawDeg: 15, // Clockwise from north: the camera looks north 15° east.
   metresPerPixel: 0.293,

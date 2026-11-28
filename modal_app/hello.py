@@ -5,10 +5,10 @@
 
 import modal
 
-app = modal.App("tinyperth-hello")
+app = modal.App("tinybend-hello")
 
 # The shared disk for renders, pairs, LoRAs and tiles. See PLAN.md, "Modal setup".
-volume = modal.Volume.from_name("tinyperth", create_if_missing=True)
+volume = modal.Volume.from_name("tinybend", create_if_missing=False)
 
 
 @app.function(volumes={"/vol": volume})

@@ -1,7 +1,7 @@
 // Cuts any window of the map out of the grid of shots, joining shots where the window crosses them.
 //
 //   import { cropWindow } from "./crop.js";
-//   const png = await cropWindow("render/out/perth", { x: -1020, y: 1564, size: 1024 });
+//   const png = await cropWindow("render/out/bend", { x: -1020, y: 1564, size: 1024 });
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";

@@ -21,7 +21,7 @@ async function fetchWater() {
   const response = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
     body: new URLSearchParams({ data: query }),
-    headers: { "User-Agent": "tinyperth/0.1" },
+    headers: { "User-Agent": "tinybend/0.1" },
   });
   if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
   const data = await response.json();

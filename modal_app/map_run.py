@@ -72,7 +72,7 @@ def draw_map(lora: str, waves: int, limit: int, version: str, renders: str, afte
     earlier = None
     if after:
         last = json.loads(Path(f"/vol/areas/map-{after}.order.json").read_text())[-1]
-        earlier = shots_in(json.loads(Path(f"/vol/areas/{last}.json").read_text()).get("renders", "perth"))
+        earlier = shots_in(json.loads(Path(f"/vol/areas/{last}.json").read_text()).get("renders", "bend"))
     areas = grid(shots_in(renders), version, earlier)
     started_with = len([name for name in order if name.startswith(f"{version}_")])
     failures: dict[str, int] = {}
@@ -150,7 +150,7 @@ def room(usage_limit: float, spend_limit: float) -> tuple[float, float, float]:
 
 
 @app.local_entrypoint()
-def run(lora: str, usage_limit: float, spend_limit: float, budget: float = 0, margin: float = 10, waves: int = 100, limit: int = 10, version: str = "v1", renders: str = "perth", after: str = ""):
+def run(lora: str, usage_limit: float, spend_limit: float, budget: float = 0, margin: float = 10, waves: int = 100, limit: int = 10, version: str = "v1", renders: str = "bend", after: str = ""):
     # The budget is the room under Modal's limits less a margin, or --budget if that is smaller.
     usage, charges, left = room(usage_limit, spend_limit)
     allowed = left - margin

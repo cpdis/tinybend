@@ -17,12 +17,12 @@ Unchanged from Perth: render on Colin's Mac (WebGL needs a real GPU), teacher ca
 
 ## Phase 0: repo and accounts ($0, each with Colin's yes)
 
-- [ ] Repo `cpdis/tinybend` (Colin creates it on GitHub; the Claude GitHub App installed on it). Copy the pipeline, keep `render/LICENSE-isometric-nyc`, add `cities/bend.json`, pstack and a `tinybend-mode` skill.
-- [ ] Fix `scripts/put-shots.py` so it uploads depth PNGs and camera sidecars, not colour only.
-- [ ] Ground height per shot. Perth used one `GROUND` height for the whole map; Bend's ground runs from about 1,000 m to 2,760 m. `render/grid.js` reads each shot's ground height from the Copernicus DEM (GLO-30, plus the geoid offset to ellipsoid heights), for both the area test and the depth range, and the range widens where a shot's relief is over 1 km. The probe showed depth clamped on up to the whole of a Bachelor shot without this.
-- [ ] Camera origin in `cities/bend.json`: 44.0582, -121.3153, 1,085 m (the probe's `camera.bend.js`).
+- [x] Repo `cpdis/tinybend` (Colin made it 2026-11-27). Pipeline copied from tinyperth `b372ebf` (code only, no Perth data), `render/LICENSE-isometric-nyc` kept, `cities/bend.json`, pstack settings and the `tinybend-mode` skill added (2026-11-28). `docs/porting.md` lists what is still Perth's, by phase.
+- [x] `scripts/put-shots.py` now uploads every shot whole (colour, depth PNG and sidecar) by default, and refuses to start if any shot is missing a part; `--colour-only` for drawing-only folders (2026-11-28).
+- [x] Ground height per shot (2026-11-28). `render/dem.js` reads the Copernicus DEM (GLO-30, two 1° tiles) and adds the geoid offset, -20.1 m, measured on the probe's depth pass. `render/grid.js` finds where each of 17 × 17 view rays per shot meets the DEM: those ground points decide the area test, and the depth range runs from 150 m above to 60 m below them, at least 1 km wide. `render/shoot.js` uses each frame's `near` and `far`. On the probe's Bachelor window, which had a third of its depth clamped, every unclamped depth falls inside the new 1.5 km range; town shots keep a 1 km range. The grid: 368 city shots (ground 1,013 to 1,286 m) and 158 Bachelor shots (1,584 to 2,634 m), 526 in all; 70 have a range wider than 1 km.
+- [x] Camera origin in `cities/bend.json`: 44.0582, -121.3153, 1,085 m, mirrored in `render/camera.js` and checked by `tests/test_city.mjs`.
 - [ ] Google Cloud project for Bend's renderer (not `tinyperth-maps`), key restricted to the Map Tiles API and localhost referrers, daily root-request cap, budget alert.
-- [ ] Modal Volume `tinybend`, reusing the `huggingface` and `gemini` secrets; `r2` for the new bucket.
+- [ ] Modal Volume `tinybend`, reusing the `huggingface` and `gemini` secrets; `r2` for the new bucket. The code now names `tinybend` with `create_if_missing=False`, so the Volume is made once, on purpose (`modal volume create tinybend`).
 - [ ] R2 bucket `tinybend-tiles`, token scoped to it, public custom domain, CORS GET.
 - [ ] Vercel project from the repo (Root Directory `site`), Web Analytics on.
 - [ ] Domain: Colin registers it on Cloudflare.
@@ -57,12 +57,12 @@ Two boxes on one grid. Bachelor is about 30 km west-southwest of downtown, and a
 
 | Box | Edges (degrees) | Ground | Shots (about) | Draw cost per season |
 | --- | --- | --- | --- | --- |
-| City (widened west to take in Phil's trails, chosen 2026-11-27) | 44.00 to 44.11 N, 121.42 to 121.25 W | 166 km² | 330 | $47 to $50 |
-| Bachelor | 43.949 to 44.021 N, 121.73 to 121.63 W | 64 km² | 130 | $18 to $20 |
+| City (widened west to take in Phil's trails, chosen 2026-11-27) | 44.00 to 44.11 N, 121.42 to 121.25 W | 166 km² | 368 (grid, 2026-11-28) | $47 to $50 |
+| Bachelor | 43.949 to 44.021 N, 121.73 to 121.63 W | 64 km² | 158 (grid, 2026-11-28) | $18 to $20 |
 
 The city box runs from about Baker Road in the south to Cooley Road in the north, and from the Phil's trail network west of Shevlin Park to past the eastside subdivisions. No Lava Butte patch (decided 2026-11-27). It keeps the river from Farewell Bend to First Street Rapids, Pilot Butte, Awbrey Butte and the airport road. Edges get fixed after the probe, from city limits in OpenStreetMap.
 
-Draw cost is about $0.28 to $0.30 per km² of map on H100s, from Perth's ledger. Rendering is under $1 for all of it.
+Draw cost is about $0.28 to $0.30 per km² of map on H100s, from Perth's ledger. Rendering is under $1 for all of it. The grid (2026-11-28) has more shots than the first estimate because a shot is kept when any of its 17 × 17 ground points is inside a box, against Perth's 5 × 5: the extra shots are part-filled edges. The joint sampler draws areas over shots, so the 14% more shots (526 against about 460) could add up to that much to the draw cost unless the edge areas are trimmed in `modal_app/plan.py`; that gets measured before the draw is asked for.
 
 **Gap.** Decided 2026-11-27: one viewer, one grid, and the gap filled with a relief chart drawn in code from the DEM (Perth's `look/edges.py`), in a summer and a winter tint, with a "Fly to Bachelor" button. $0.
 

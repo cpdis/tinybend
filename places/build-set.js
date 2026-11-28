@@ -2,7 +2,7 @@
 // Every 512 px frame is enlarged 2x for the teacher. Each frame gets a sidecar, so the water
 // sentence and the checks work on it as they did in Phase 1.
 //
-//   node places/build-set.js render/out/perth look/out/sets/v1
+//   node places/build-set.js render/out/bend look/out/sets/v1
 //   node look/water.js look/out/sets/v1
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

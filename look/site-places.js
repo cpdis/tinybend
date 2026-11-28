@@ -21,7 +21,7 @@ async function osmPlaces() {
   if (existsSync(CACHE)) return JSON.parse(readFileSync(CACHE, "utf8"));
   const query = `[out:json][timeout:120];node["place"~"^(suburb|town|village|island|quarter)$"]["name"](${BBOX});out;`;
   for (const server of ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]) {
-    const reply = await fetch(server, { method: "POST", body: new URLSearchParams({ data: query }), headers: { "User-Agent": "tinyperth/0.1" } });
+    const reply = await fetch(server, { method: "POST", body: new URLSearchParams({ data: query }), headers: { "User-Agent": "tinybend/0.1" } });
     if (!reply.ok) continue;
     const data = await reply.json();
     writeFileSync(CACHE, JSON.stringify(data));

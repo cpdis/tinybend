@@ -4,7 +4,7 @@ Prepare a set on the Mac, then run it:
 
     node look/quarters.js render/out/phase1 look/out/quarters-in
     node look/water.js look/out/quarters-in
-    modal volume put tinyperth look/out/quarters-in /renders/phase1-quarters
+    modal volume put tinybend look/out/quarters-in /renders/phase1-quarters
     modal run --detach -m modal_app.teacher --set-name phase1-quarters
 
 The drawing and checking code is the same Node code that Phase 1 ran on the Mac (look/draw.js
@@ -15,7 +15,7 @@ import modal
 
 from .common import MAX_REDRAWS, TEACHER_VARIANT as VARIANT, failures, image, node, volume
 
-app = modal.App("tinyperth-teacher")
+app = modal.App("tinybend-teacher")
 
 
 @app.function(image=image, volumes={"/vol": volume}, secrets=[modal.Secret.from_name("gemini")], timeout=4 * 60 * 60)

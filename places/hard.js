@@ -5,8 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { project } from "../render/camera.js";
-import { GROUND } from "./test-places.js";
+import { groundAt } from "./test-places.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CACHE = join(here, "hard-cache.json");
@@ -37,7 +36,7 @@ async function fetchKind(filter) {
     const response = await fetch(SERVERS[attempt % SERVERS.length], {
       method: "POST",
       body: new URLSearchParams({ data: query }),
-      headers: { "User-Agent": "tinyperth/0.1" },
+      headers: { "User-Agent": "tinybend/0.1" },
     }).catch(() => null);
     if (response?.ok) {
       const { elements } = await response.json();
@@ -70,7 +69,7 @@ for (const [kind, filter] of Object.entries(KINDS)) {
   // Count features per quarter. A quarter with many pools is a better pools example than one with one.
   const counts = new Map();
   for (const p of cache[kind]) {
-    const c = project(p.lat, p.lon, GROUND);
+    const c = groundAt(p.lat, p.lon);
     const key = `${Math.floor(c.x / QUARTER) * QUARTER},${Math.floor(c.y / QUARTER) * QUARTER}`;
     if (candidates.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
   }

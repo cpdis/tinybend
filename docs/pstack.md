@@ -1,4 +1,4 @@
-# pstack in Tiny Perth
+# pstack in Tiny Bend
 
 [pstack](https://github.com/cursor/plugins/tree/main/pstack) is a set of agent skills for rigorous engineering work: playbooks for features, bug fixes, hillclimbs and long runs, a review panel, and a list of principles. pstack is written for Cursor, and its Claude Code build maps the Cursor names. This repo uses it in Claude Code only, with Claude models only. This page covers installing it and how the repo adapts it.
 
@@ -57,11 +57,11 @@ interrogate reviewers: fable xhigh, opus xhigh, sonnet xhigh
 
 Each panel entry is one subagent, so three interrogate reviewers cost about three reviews. Shorten a list if that's more than a change needs.
 
-Setup then offers to make a verification skill. Say no for now. Nothing can run yet. `tinyperth-mode` says when to make one.
+Setup then offers to make a verification skill. Say no for now. Nothing can run yet. `tinybend-mode` says when to make one.
 
 ## Add Gemini as an outside reviewer
 
-Claude models share blind spots. `scripts/agy-review` sends the branch's diff to Gemini through Google's Antigravity CLI (`agy`) for a review from a different lab. `tinyperth-mode` runs it alongside `/interrogate` on the hardest changes.
+Claude models share blind spots. `scripts/agy-review` sends the branch's diff to Gemini through Google's Antigravity CLI (`agy`) for a review from a different lab. `tinybend-mode` runs it alongside `/interrogate` on the hardest changes.
 
 It uses the Gemini API key that the teacher uses, not an Antigravity sign-in. Google's [Antigravity FAQ](https://antigravity.google/docs/faq) says an Antigravity login must not be used from third-party agents such as Claude Code, and that this can get the account suspended. It recommends an API key. The key is separate from the Maps 3D Tiles key.
 
@@ -88,14 +88,14 @@ It prints Gemini's findings and appends a row to `runs/ledger.tsv`, including fo
 
 ## How the repo adapts pstack
 
-pstack's author recommends making your own mode on top of `poteto-mode`, normally with `/automate-me`, which mines your chat history. This repo has no history yet, so `tinyperth-mode` was written from `PLAN.md` instead. Rerun `/automate-me` after a few weeks of work to fold in how you actually work.
+pstack's author recommends making your own mode on top of `poteto-mode`, normally with `/automate-me`, which mines your chat history. This repo has no history yet, so `tinybend-mode` was written from `PLAN.md` instead. Rerun `/automate-me` after a few weeks of work to fold in how you actually work.
 
-| pstack piece | What Tiny Perth adds |
+| pstack piece | What Tiny Bend adds |
 | --- | --- |
-| `poteto-mode` routing | A table that sends each kind of Tiny Perth work to a playbook. Teacher prompts and LoRA versions go to **Hillclimb**. Whole-map generation goes to **Autonomous run**. Landmark and water fixes go to **Bug fix**. The Phase 1 look goes to **Prototype**. |
+| `poteto-mode` routing | A table that sends each kind of Tiny Bend work to a playbook. Teacher prompts and LoRA versions go to **Hillclimb**. Whole-map generation goes to **Autonomous run**. Landmark and water fixes go to **Bug fix**. The Phase 1 look goes to **Prototype**. |
 | Always-pause list | Spend gates. Ask before any paid run over $10, before Google Cloud account changes, before public uploads, and before deletes. Landmark approvals and test places stay with you. |
 | `prove-it-works` | Image claims need contact sheets. Numbers need the set size and what limits them. LoRAs are judged only on held-out test places. |
-| `build-the-lever` | A validator ships with `places/perth.json`, and every paid run gets a row in `runs/ledger.tsv`. |
+| `build-the-lever` | A validator ships with `places/bend.json`, and every paid run gets a row in `runs/ledger.tsv`. |
 | `make-operations-idempotent` | Generation checkpoints every block and skips finished blocks on a rerun. |
 | Multi-phase plan | Works from the phases in `PLAN.md` rather than writing a second plan. |
 | `technical-writing`, `unslop`, `show-me-your-work` | The write-up. A journal entry per finished plan step, small images saved beside it, a `Write-up` line in every PR, and `writeup/how.md` drafted only from that evidence. |
@@ -110,11 +110,11 @@ Left out on purpose:
 ## Example prompts
 
 ```text
-/tinyperth-mode phase 1. render the four test frames and draw each in six directions. put them on one contact sheet so I can pick.
-/tinyperth-mode write places/perth.json from the plan's landmark list, with a validator.
-/tinyperth-mode hillclimb the teacher prompt. get first-try acceptance above 70% on the v1 frame set, at least 8 attempts.
-/tinyperth-mode build the joint sampler. architect it first, then interrogate the diff.
-/tinyperth-mode i'm going to bed. generate the cbd-test area with perth-v1. stop if it would go over $25.
-/tinyperth-mode draft writeup/how.md from the journal so far. technical-writing, then unslop.
+/tinybend-mode phase 1. render the four test frames and draw each in six directions. put them on one contact sheet so I can pick.
+/tinybend-mode write places/bend.json from the plan's landmark list, with a validator.
+/tinybend-mode hillclimb the teacher prompt. get first-try acceptance above 70% on the v1 frame set, at least 8 attempts.
+/tinybend-mode build the joint sampler. architect it first, then interrogate the diff.
+/tinybend-mode i'm going to bed. generate the downtown-test area with bend-v1. stop if it would go over $25.
+/tinybend-mode draft writeup/how.md from the journal so far. technical-writing, then unslop.
 /pstack:how does the sampler pin finished blocks?
 ```

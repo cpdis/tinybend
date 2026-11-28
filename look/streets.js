@@ -245,7 +245,7 @@ async function main() {
   if (!existsSync(input)) {
     console.log(`No ${input}: asking Overpass (this takes a few minutes).`);
     const query = readFileSync(here("./streets.overpassql"), "utf8");
-    const reply = await fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: new URLSearchParams({ data: query }), headers: { "User-Agent": "tinyperth/0.1" } });
+    const reply = await fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: new URLSearchParams({ data: query }), headers: { "User-Agent": "tinybend/0.1" } });
     if (!reply.ok) throw new Error(`Overpass said ${reply.status}`);
     mkdirSync(dirname(input), { recursive: true });
     writeFileSync(input, await reply.text());
