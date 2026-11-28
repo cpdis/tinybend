@@ -38,3 +38,33 @@ export async function cropWindow(dir, { x, y, size }, { allowGaps = false } = {}
     .png()
     .toBuffer();
 }
+
+/**
+ * The share of the window's pixels with no geometry, from the shots' depth passes (value 0 means
+ * the ray hit nothing). Colour can't tell this apart from deep shadow in dense forest or on lava.
+ * A window that runs off the rendered area counts the missing part as empty.
+ */
+export async function emptyShare(dir, { x, y, size }) {
+  let empty = 0;
+  for (let row = Math.floor(y / SHOT); row * SHOT < y + size; row++) {
+    for (let col = Math.floor(x / SHOT); col * SHOT < x + size; col++) {
+      const left = Math.max(x, col * SHOT);
+      const top = Math.max(y, row * SHOT);
+      const width = Math.min(x + size, (col + 1) * SHOT) - left;
+      const height = Math.min(y + size, (row + 1) * SHOT) - top;
+      const file = join(dir, `c${col}_r${row}.depth.png`);
+      if (!existsSync(file)) {
+        empty += width * height;
+        continue;
+      }
+      const data = await sharp(file)
+        .toColourspace("grey16")
+        .extract({ left: left - col * SHOT, top: top - row * SHOT, width, height })
+        .raw({ depth: "ushort" })
+        .toBuffer();
+      const values = new Uint16Array(data.buffer, data.byteOffset, data.length / 2);
+      for (const v of values) if (v === 0) empty++;
+    }
+  }
+  return empty / (size * size);
+}
