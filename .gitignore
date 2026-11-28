@@ -1,0 +1,19 @@
+.env
+.env.*
+.claude/settings.local.json
+decision.tsv
+node_modules/
+research/
+review/
+render/out/
+look/out/
+places/lookup-cache.json
+places/hard-cache.json
+places/quarter-candidates.json
+life/out/
+tests/life-diff/out/
+tests/perf/out/
+__pycache__/
+
+# DEM tiles (render/dem.js fetch)
+render/dem/

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- The share card (site/og.png): the CBD from the map, with the site's title card. Made by og.js. -->
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --card: #fffaf0; --ink: #2a2018; --muted: #77685a; --edge: #2a2018; --wattle: #f2b531; --pixel: "Pixelify Sans", monospace; }
+  html, body, #map { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #efe6d2; }
+  .title {
+    position: fixed; left: 40px; top: 40px; display: flex; align-items: center; gap: 20px; padding: 16px 24px 16px 16px;
+    background: var(--card); border: 4px solid var(--edge); border-radius: 6px; box-shadow: 8px 8px 0 rgb(42 32 24 / 0.9);
+    font-family: system-ui, sans-serif; color: var(--ink);
+  }
+  .logo { width: 84px; height: 84px; background: var(--wattle); border: 4px solid var(--edge); border-radius: 5px; box-sizing: border-box; padding: 4px; shape-rendering: crispEdges; }
+  h1 { margin: 0; font: 700 56px/1 var(--pixel); }
+  p { margin: 8px 0 0; font-size: 22px; color: var(--muted); }
+  .url { position: fixed; right: 40px; bottom: 36px; padding: 10px 16px; font: 500 26px/1 var(--pixel); color: var(--card); background: var(--ink); border-radius: 5px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="title">
+  <svg class="logo" viewBox="0 0 16 16"><path fill="#1d1712" d="M4 1h3v1h-3zM3 2h4v1h-4zM3 3h2v1h-2zM3 4h2v1h-2zM4 5h2v1h-2zM4 6h2v1h-2zM3 7h2v1h-2zM3 8h2v1h-2zM12 8h2v1h-2zM3 9h12v1h-12zM2 10h14v1h-14zM2 11h13v1h-13zM3 12h11v1h-11z"/><path fill="#d9362b" d="M7 2h2v1h-2zM7 3h3v1h-3z"/><path fill="#fff" d="M11 8h1v1h-1z"/><path fill="#2a73a3" d="M0 13h16v1h-16zM1 14h3v1h-3zM6 14h4v1h-4zM12 14h3v1h-3z"/></svg>
+  <div><h1>Tiny Perth</h1><p>~2,200 km² of Greater Perth</p></div>
+</div>
+<div class="url">tinyperth.com</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.js"></script>
+<script>
+const base = new URLSearchParams(location.search).get("tiles") ?? "https://tiles.tinyperth.cpd.dev/v2";
+// The CBD, Elizabeth Quay and the river, in map pixels.
+const VIEW = { x: -400, y: 700, width: 9000 };
+fetch(`${base}/tiles.json`).then((r) => r.json()).then((layout) => {
+  const side = layout.tile * 2 ** layout.maxZoom;
+  const viewer = OpenSeadragon({
+    id: "map", showNavigationControl: false, imageSmoothingEnabled: false, immediateRender: true, blendTime: 0,
+    tileSources: { width: side, height: side, tileSize: layout.tile, minLevel: 0, maxLevel: layout.maxZoom, getTileUrl: (z, c, r) => `${base}/${z}/${c}/${r}.${layout.format}` },
+  });
+  viewer.addHandler("open", () => {
+    const h = VIEW.width * 630 / 1200;
+    viewer.viewport.fitBounds(new OpenSeadragon.Rect((VIEW.x - VIEW.width / 2 - layout.x) / side, (VIEW.y - h / 2 - layout.y) / side, VIEW.width / side, h / side), true);
+  });
+  viewer.world.addHandler("add-item", (e) => e.item.addHandler("fully-loaded-change", (f) => { if (f.fullyLoaded) setTimeout(() => (document.body.dataset.ready = "1"), 300); }));
+});
+</script>
+</body>
+</html>

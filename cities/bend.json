@@ -1,0 +1,84 @@
+{
+  "name": "Tiny Bend",
+  "slug": "bend",
+  "note": "The one city config. render/camera.js, render/grid.js and render/dem.js read it; tests/test_city.mjs checks they agree. See PLAN.md.",
+  "camera": {
+    "origin": {
+      "lat": 44.0582,
+      "lon": -121.3153,
+      "height": 1085
+    },
+    "tiltDeg": 45,
+    "yawDeg": 15,
+    "metresPerPixel": 0.293,
+    "standoffMetres": 20000
+  },
+  "shotSize": 2048,
+  "areas": {
+    "city": {
+      "label": "Bend, widened west for Phil's trails (Colin, 2026-11-27)",
+      "box": {
+        "south": 44.0,
+        "north": 44.11,
+        "west": -121.42,
+        "east": -121.25
+      }
+    },
+    "bachelor": {
+      "label": "Mt. Bachelor",
+      "box": {
+        "south": 43.949,
+        "north": 44.021,
+        "west": -121.73,
+        "east": -121.63
+      }
+    }
+  },
+  "gap": {
+    "fill": "relief chart drawn in code from the DEM, summer and winter tints, with Fly to Bachelor (Colin, 2026-11-27)"
+  },
+  "ground": {
+    "source": "Copernicus DEM GLO-30 (ESA, free with credit). Heights are above the EGM2008 geoid; add geoidOffset for heights above the WGS84 ellipsoid, which the render uses.",
+    "demTiles": [
+      "Copernicus_DSM_COG_10_N44_00_W122_00_DEM",
+      "Copernicus_DSM_COG_10_N43_00_W122_00_DEM"
+    ],
+    "demUrl": "https://copernicus-dem-30m.s3.amazonaws.com/{name}/{name}.tif",
+    "geoidOffset": -20.1,
+    "geoidOffsetSource": "Measured 2026-11-28: median of render height (probe depth pass, ellipsoid) minus DEM height (geoid), 16,384 points in four town and forest probe shots. Per shot medians -18.2 to -20.8 m. See writeup/journal.md, 2026-11-28.",
+    "depthAboveMetres": 150,
+    "depthBelowMetres": 60,
+    "minDepthSpanMetres": 1000
+  },
+  "seasons": {
+    "summer": {
+      "source": "Google Photorealistic 3D Tiles render",
+      "tiles": "summer-v1"
+    },
+    "winter": {
+      "source": "second LoRA repainting the finished summer map, pixel-aligned (Colin, 2026-11-27)",
+      "tiles": "winter-v1",
+      "snow": "fresh storm everywhere"
+    },
+    "toggle": [
+      "summer",
+      "winter",
+      "live"
+    ],
+    "default": "live"
+  },
+  "frozenPonds": [],
+  "accounts": {
+    "modalVolume": "tinybend",
+    "modalSecrets": [
+      "huggingface",
+      "gemini",
+      "r2-tinybend"
+    ],
+    "r2Bucket": "tinybend-tiles",
+    "googleCloudProject": "tinybend-maps",
+    "vercelProject": "tinybend",
+    "domain": null,
+    "modalSecretsNote": "Modal secrets are shared across the workspace: r2 is Tiny Perth's. Bend's R2 token is r2-tinybend."
+  }
+}

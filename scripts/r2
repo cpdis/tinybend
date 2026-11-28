@@ -1,0 +1,43 @@
+#!/bin/bash
+# Runs rclone against the tiles bucket on Cloudflare R2, with the keys from the ignored .env.
+# The keys are never printed. The remote is called "r2".
+#
+#   scripts/r2 lsd r2:tinybend-tiles                 list the version folders
+#   scripts/r2 publish look/out/map/tiles/v1 v1       upload a finished pyramid as a version
+#
+# publish never changes a file that is already in the bucket (--immutable), so a published
+# version cannot be overwritten. Fixes ship as a new version or a patch folder.
+set -eu
+cd "$(dirname "$0")/.."
+BUCKET=tinybend-tiles
+
+# Read one key from .env without printing it.
+key() { sed -n "s/^$1=//p" .env | head -1; }
+export RCLONE_CONFIG_R2_TYPE=s3
+export RCLONE_CONFIG_R2_PROVIDER=Cloudflare
+export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$(key R2_ACCESS_KEY_ID)"
+export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$(key R2_SECRET_ACCESS_KEY)"
+export RCLONE_CONFIG_R2_ENDPOINT="$(key R2_ENDPOINT)"
+# The key can only see this one bucket, so rclone must not try to list or create buckets.
+export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
+
+if [ "${1:-}" = "publish" ]; then
+  # A version's tiles never change, so browsers and Cloudflare may keep them for a year.
+  exec rclone copy "$2" "r2:$BUCKET/$3" --immutable --transfers 32 --checkers 32 --fast-list \
+    --header-upload "Cache-Control: public, max-age=31536000, immutable" --stats 30s --stats-one-line
+fi
+# Nothing is ever deleted from the bucket or changed in place (CLAUDE.md, Data). Only commands
+# that read, and copy with --immutable, are let through; anything else is refused, including a
+# leading option such as "-v sync", which would hide the command from this check. This guards
+# against slips; the bucket's own lock rule is what holds if a different tool is used.
+case "${1:-}" in
+  ls|lsd|lsl|lsf|lsjson|size|cat|check|md5sum|sha1sum|hashsum|tree|about|version)
+    exec rclone "$@" ;;
+  copy)
+    # copy is allowed out of the bucket, and into it only without overwriting.
+    exec rclone "$@" --immutable ;;
+  *)
+    echo "scripts/r2: '${1:-}' is not one of the read-only commands, copy or publish, so it is not allowed." >&2
+    echo "Nothing in the bucket is ever deleted or changed. Use 'publish' for a new version." >&2
+    exit 2 ;;
+esac
