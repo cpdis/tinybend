@@ -1,7 +1,10 @@
 // Builds the Phase 1 contact sheet from the renders and drawings: flat-pixel scores,
 // a montage per frame, and one self-contained HTML page with a switcher.
 //
-//   node look/sheet.js render/out/phase1 look/out/v1 review/phase1-look.html writeup/images/phase1-look
+//   node look/sheet.js render/out/phase1 look/out/phase1 review/phase1-look.html writeup/images/phase1-look
+//
+// The frames are render/frames/phase1.json's. Their drawings are whole frames, joined from
+// quarters by look/join-quarters.js.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,12 +15,17 @@ import { VARIANTS } from "./prompts.js";
 const sharp = createRequire(new URL("../render/", import.meta.url))("sharp");
 
 const here = dirname(fileURLToPath(import.meta.url));
-const FRAMES = [
-  { id: "elizabeth-quay", name: "Elizabeth Quay and Perth Water" },
-  { id: "cottesloe", name: "Cottesloe beach" },
-  { id: "pools-suburb", name: "Backyard pools, Wembley Downs" },
-  { id: "kings-park-bush", name: "Kings Park bush above the Narrows" },
-];
+// Names for the sheet only: they never reach a teacher prompt.
+const NAMES = {
+  "downtown-river": "Downtown and the river",
+  "ponderosa-forest": "Pine forest by the trails",
+  "rimrock-canyon": "Rimrock canyon on the river",
+  "bachelor-summit": "Bachelor's summit",
+};
+const FRAMES = JSON.parse(readFileSync(join(here, "..", "render", "frames", "phase1.json"), "utf8")).map((f) => ({
+  id: f.id,
+  name: NAMES[f.id.split("__")[0]] ?? f.id,
+}));
 const THUMB = 512;
 
 const [renders, drawings, page, imagesDir] = process.argv.slice(2);

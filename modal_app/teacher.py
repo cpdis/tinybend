@@ -23,6 +23,8 @@ def teach(set_name: str) -> dict[str, str]:
     """Draws every missing frame, then redraws failures. A rerun skips frames that already passed."""
     from pathlib import Path
 
+    if VARIANT is None:
+        raise SystemExit("No teacher look is chosen yet: set TEACHER_VARIANT from the Phase 1 sheet first.")
     renders, pairs = f"/vol/renders/{set_name}", f"/vol/pairs/{set_name}"
     rejected = Path(pairs, "rejected")
     failed: dict[str, str] = {}

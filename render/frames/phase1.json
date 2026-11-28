@@ -1,0 +1,46 @@
+[
+ {
+  "id": "downtown-river__x-1624_y-1186",
+  "area": null,
+  "x": -1624,
+  "y": -1186,
+  "size": 2048,
+  "height": 1082.9,
+  "relief": 22,
+  "near": 19487.11,
+  "far": 20487.11
+ },
+ {
+  "id": "ponderosa-forest__x-22947_y7912",
+  "area": null,
+  "x": -22947,
+  "y": 7912,
+  "size": 2048,
+  "height": 1204.5,
+  "relief": 53,
+  "near": 16653.51,
+  "far": 17653.51
+ },
+ {
+  "id": "rimrock-canyon__x-2821_y-6796",
+  "area": null,
+  "x": -2821,
+  "y": -6796,
+  "size": 2048,
+  "height": 1106.5,
+  "relief": 100,
+  "near": 21115.14,
+  "far": 22119.6
+ },
+ {
+  "id": "bachelor-summit__x-92109_y34198",
+  "area": null,
+  "x": -92109,
+  "y": 34198,
+  "size": 2048,
+  "height": 2636.8,
+  "relief": 328,
+  "near": 7061.5,
+  "far": 8297.1
+ }
+]

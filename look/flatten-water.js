@@ -15,8 +15,8 @@
 // --mask <mask.png> names a picture that is black past the map's edge. Nothing there is water.
 import { createRequire } from "node:module";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { depthAtHeight, unproject } from "../render/camera.js";
-import { WATER_LEVEL, waterLookup } from "./osm-water.js";
+import { waterLookup } from "./osm-water.js";
+import { demSurface } from "./surface.js";
 
 const sharp = createRequire(new URL("../render/", import.meta.url))("sharp");
 
@@ -48,15 +48,17 @@ const [width, height] = [info.width, info.height];
 const [cols, rows] = [Math.floor(width / CELL), Math.floor(height / CELL)];
 const at = (c, r) => r * cols + c;
 
-// 1. Which cells are water, from the map data, through the camera.
+// 1. Which cells are water, from the map data, through the camera. A drawn area has no depth
+// pass, so each cell's ground point comes from the DEM (look/surface.js).
 const isWater = await waterLookup();
+const surface = await demSurface();
 const inMap = maskPath ? await sharp(maskPath).extractChannel(0).resize(cols, rows, { kernel: "nearest" }).raw().toBuffer() : null;
 const water = new Uint8Array(cols * rows);
 for (let r = 0; r < rows; r++) {
   for (let c = 0; c < cols; c++) {
     const [px, py] = [x0 + (c + 0.5) * CELL, y0 + (r + 0.5) * CELL];
-    const point = unproject(px, py, depthAtHeight(px, py, WATER_LEVEL));
-    water[at(c, r)] = isWater(point.lat, point.lon) && (!inMap || inMap[at(c, r)]) ? 1 : 0;
+    const point = surface(px, py);
+    water[at(c, r)] = point && isWater(point.lat, point.lon) && (!inMap || inMap[at(c, r)]) ? 1 : 0;
   }
 }
 
