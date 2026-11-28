@@ -1,0 +1,161 @@
+<title>Tiny Perth looks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: a working contact sheet. One sticky variant switcher over four draggable
+   render-and-drawing comparisons, then the whole grid. Single dark look on purpose:
+   a neutral, slightly teal ground judges map colour better than white. */
+:root {
+  --bg: #171c1d;
+  --panel: #212829;
+  --line: #3a4546;
+  --fg: #e8ecea;
+  --muted: #a3b0ae;
+  --accent: #6fc7bd;
+  --warn: #e0a458;
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--sans); }
+.wrap {
+  max-width: 1240px; margin: 0 auto;
+  padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 24px;
+}
+h1 { font-size: 26px; line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
+h2 { font-size: 18px; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line);
+  display: grid; gap: 6px;
+}
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pills button {
+  font: 500 13px/1 var(--mono); color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); padding: 9px 11px; cursor: pointer; border-radius: 3px;
+}
+.pills button[aria-pressed="true"] { background: var(--accent); color: #10201e; border-color: var(--accent); }
+.pills button:focus-visible, input:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 20px; }
+figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-size: 13px; }
+.score { font: 400 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.score.low { color: var(--warn); }
+.compare { position: relative; aspect-ratio: 1; max-width: 100%; background: #000; overflow: hidden; touch-action: pan-y; }
+.compare img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.compare .over { clip-path: inset(0 0 0 var(--cut, 50%)); }
+.compare .rule { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; background: var(--fg); pointer-events: none; }
+.compare input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.tag { position: absolute; top: 6px; font: 500 11px var(--mono); background: rgba(16, 24, 25, .8); padding: 3px 6px; pointer-events: none; }
+.tag.l { left: 6px; }
+.tag.r { right: 6px; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); }
+table { border-collapse: collapse; min-width: 960px; width: 100%; }
+th { font: 500 12px var(--mono); text-align: left; padding: 8px; color: var(--muted); vertical-align: top; }
+td { padding: 2px; }
+td button { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+td img { display: block; width: 100%; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Tiny Perth: pick the look</h1>
+    <p>Six versions of the tiny.london look, each adapted differently to Perth, drawn by Gemini on the same four renders. A to E came first, and F mixes what worked in them. Choose one, or say what to mix. The drawing you choose becomes the style reference for every later teacher call.</p>
+  </header>
+
+  <div class="bar">
+    <div class="pills" id="pills" role="group" aria-label="Variant"></div>
+    <div class="muted" id="note"></div>
+  </div>
+
+  <section class="grid" id="frames" aria-label="Four frames in the chosen variant"></section>
+  <p class="muted">Drag across a frame to compare the render on the left with the drawing on the right. The number is the flat-pixel share, where a low score suggests leftover photo texture. All 24 drawings score 0.49 or higher, and the renders score 0.04 to 0.46.</p>
+
+  <section style="display:grid;gap:10px">
+    <h2>All 28 images</h2>
+    <p class="muted">Select any drawing to show that variant above. On a phone, scroll this table sideways.</p>
+    <div class="scroll"><table id="matrix"></table></div>
+  </section>
+</div>
+
+<script>
+const DATA = /*DATA*/null;
+const url = (key) => `data:image/webp;base64,${DATA.images[key]}`;
+const score = (key) => {
+  const value = DATA.scores[key];
+  return `<span class="score${value < 0.4 ? " low" : ""}">flat ${value.toFixed(2)}</span>`;
+};
+
+let current = DATA.variants[0].id;
+try { current = localStorage.getItem("variant") || current; } catch {}
+if (!DATA.variants.some((v) => v.id === current)) current = DATA.variants[0].id;
+
+const pills = document.getElementById("pills");
+const note = document.getElementById("note");
+const frames = document.getElementById("frames");
+
+DATA.variants.forEach((v) => {
+  const b = document.createElement("button");
+  b.id = `pill-${v.id}`;
+  b.type = "button";
+  b.textContent = `${v.id.toUpperCase()} ${v.name}`;
+  b.addEventListener("click", () => select(v.id));
+  pills.appendChild(b);
+});
+
+DATA.frames.forEach((f) => {
+  const fig = document.createElement("figure");
+  fig.innerHTML = `
+    <div class="compare" style="--cut:50%">
+      <img alt="Render of ${f.name}" src="${url(`${f.id}.render`)}">
+      <img class="over" id="over-${f.id}" alt="Drawing of ${f.name}">
+      <div class="rule"></div>
+      <span class="tag l">render</span><span class="tag r" id="tag-${f.id}"></span>
+      <input id="cut-${f.id}" type="range" min="0" max="100" value="50" aria-label="Compare render and drawing of ${f.name}">
+    </div>
+    <figcaption><span>${f.name}</span><span id="score-${f.id}"></span></figcaption>`;
+  const box = fig.querySelector(".compare");
+  fig.querySelector("input").addEventListener("input", (e) => box.style.setProperty("--cut", `${e.target.value}%`));
+  frames.appendChild(fig);
+});
+
+function select(id) {
+  current = id;
+  try { localStorage.setItem("variant", id); } catch {}
+  const v = DATA.variants.find((x) => x.id === id);
+  note.textContent = v.note;
+  DATA.variants.forEach((x) => document.getElementById(`pill-${x.id}`).setAttribute("aria-pressed", String(x.id === id)));
+  DATA.frames.forEach((f) => {
+    document.getElementById(`over-${f.id}`).src = url(`${f.id}.${id}`);
+    document.getElementById(`tag-${f.id}`).textContent = id.toUpperCase();
+    document.getElementById(`score-${f.id}`).innerHTML = score(`${f.id}.${id}`);
+  });
+}
+
+const matrix = document.getElementById("matrix");
+const head = ["", "render", ...DATA.variants.map((v) => `${v.id.toUpperCase()} ${v.name}`)];
+matrix.innerHTML = `<thead><tr>${head.map((h) => `<th scope="col">${h}</th>`).join("")}</tr></thead>`;
+const body = document.createElement("tbody");
+DATA.frames.forEach((f) => {
+  const row = document.createElement("tr");
+  row.innerHTML = `<th scope="row">${f.name}</th><td><img loading="lazy" alt="Render" src="${url(`${f.id}.render`)}"></td>` +
+    DATA.variants.map((v) => `<td><button type="button" data-v="${v.id}" aria-label="Show ${v.name}"><img loading="lazy" alt="${v.name}, ${f.name}" src="${url(`${f.id}.${v.id}`)}"></button></td>`).join("");
+  body.appendChild(row);
+});
+matrix.appendChild(body);
+matrix.addEventListener("click", (e) => {
+  const button = e.target.closest("button[data-v]");
+  if (!button) return;
+  select(button.dataset.v);
+  document.querySelector(".bar").scrollIntoView({ behavior: "smooth" });
+});
+
+select(current);
+</script>

@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# Second-opinion review of a diff by Gemini, through the Antigravity CLI (agy).
+# Uses GEMINI_API_KEY from .env, never an Antigravity login: Google's FAQ forbids
+# using that login from third-party agents such as Claude Code.
+#
+# Usage: scripts/agy-review [base-ref] [focus...]
+#   base-ref  diff the working tree against this ref's merge base (default: origin/main)
+#   focus     optional words on what to attack, such as "tent weights and pinning"
+# Env: AGY_MODEL (optional --model slug; see `agy models`), AGY_EFFORT (default high)
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+base="${1:-origin/main}"
+shift || true
+focus="${*:-}"
+
+command -v agy >/dev/null || { echo "agy not installed. See docs/pstack.md." >&2; exit 2; }
+
+if [[ -z "${GEMINI_API_KEY:-}" && -f .env ]]; then
+  # `|| true`: a .env without the key must reach the clear error below, not trip pipefail.
+  GEMINI_API_KEY="$(grep -E '^(export[[:space:]]+)?GEMINI_API_KEY=' .env | tail -1 | cut -d= -f2- | sed -e 's/^["'\'']//' -e 's/["'\'']$//' || true)"
+fi
+[[ -n "${GEMINI_API_KEY:-}" ]] || { echo "GEMINI_API_KEY is not set and not in .env." >&2; exit 2; }
+export GEMINI_API_KEY
+
+# Diff against the working tree, so uncommitted edits get reviewed too.
+diff="$(git diff "$(git merge-base "$base" HEAD)")"
+[[ -n "$diff" ]] || { echo "No diff against $base." >&2; exit 2; }
+
+# Untracked files stay out of the prompt: they may hold things never meant to leave the machine.
+untracked="$(git ls-files --others --exclude-standard)"
+[[ -z "$untracked" ]] || printf 'Not reviewed, untracked:\n%s\n' "$untracked" >&2
+
+prompt="You are reviewing a diff for Tiny Perth, an isometric pixel-art map of Perth made by an image model.
+Find real defects only: wrong results, crashes, data loss, wasted paid compute, broken invariants.
+For each finding give the file and line, the failing input or state, and what goes wrong.
+Say \"no findings\" if there are none. Do not edit files or run commands.
+${focus:+Focus on: $focus.}
+
+Read CLAUDE.md and PLAN.md in this repo if you need the project's rules.
+
+DIFF:
+$diff"
+
+# The prompt is one command-line argument, and Linux caps one argument at 128 KiB.
+max=120000
+size="$(printf '%s' "$prompt" | wc -c | tr -d ' ')"
+(( size <= max )) || { echo "Prompt is $size bytes, over $max. Review a narrower range." >&2; exit 2; }
+
+# Every run that reached agy may have cost money, so each one gets a ledger row, failed or not.
+log_run() {
+  mkdir -p runs
+  [[ -f runs/ledger.tsv ]] || printf 'date\tjob\tcommand\testimate\tactual\toutcome\n' > runs/ledger.tsv
+  printf '%s\tagy-review\tscripts/agy-review %s\tunder $0.10\tsee agy usage\t%s\n' \
+    "$(date -u +%F)" "$base" "$1" >> runs/ledger.tsv
+}
+
+# --settings applies to this run only and is never saved. It points agy at GEMINI_API_KEY,
+# so the global settings.json can keep the Google sign-in for Colin's own interactive use.
+args=(-p "$prompt" --output-format json --effort "${AGY_EFFORT:-high}"
+  --settings '{"modelProvider":"gemini"}')
+[[ -n "${AGY_MODEL:-}" ]] && args+=(--model "$AGY_MODEL")
+
+status=0
+out="$(agy "${args[@]}")" || status=$?
+if (( status != 0 )); then
+  log_run "failed: agy exit $status"
+  exit "$status"
+fi
+
+status=0
+python3 - "$out" <<'PY' || status=$?
+import json, sys
+env = json.loads(sys.argv[1])
+if env.get("status") != "SUCCESS":
+    sys.exit(f"agy status {env.get('status')}: {env.get('error')}")
+print(env.get("response", ""))
+print(f"\n[agy usage: {json.dumps(env.get('usage', {}))}]", file=sys.stderr)
+PY
+if (( status != 0 )); then
+  log_run "failed: no usable response"
+  exit "$status"
+fi
+
+log_run "reviewed $size bytes"
