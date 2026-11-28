@@ -15,7 +15,7 @@ import { testPlacesTouched } from "./test-places.js";
 const sharp = createRequire(new URL("../render/", import.meta.url))("sharp");
 const here = dirname(fileURLToPath(import.meta.url));
 const TEACHER = 1024; // The size the teacher draws at.
-const DARK = 40; // Mean brightness (0 to 255) below which a frame is deep ocean.
+const EMPTY = 0.05; // Share of pure-black (unrendered) pixels above which a frame is left out.
 const read = (name) => JSON.parse(readFileSync(join(here, name), "utf8"));
 
 const [renders, out] = process.argv.slice(2);
@@ -38,7 +38,7 @@ for (const f of read("landmark-frames.json")) {
 }
 
 const counts = {};
-let dark = 0;
+let empty = 0;
 const manifest = [];
 for (const { id, window, source, kind } of frames.values()) {
   if (testPlacesTouched(window).length) throw new Error(`${id} touches a test place`);
@@ -47,9 +47,15 @@ for (const { id, window, source, kind } of frames.values()) {
     console.log(`${id}: outside the rendered area, skipped`);
     continue;
   }
-  // Deep ocean renders almost black. The teacher invents stripes on it, so it stays out of training.
-  if ((await sharp(png).greyscale().stats()).channels[0].mean < DARK) {
-    dark++;
+  // Perth left out frames darker than a brightness of 40 as deep ocean. Bend has no ocean, and
+  // that rule dropped dense conifer forest on Bachelor, so only frames that run past the edge of
+  // the render (pure black, no tiles) are left out: the teacher invents things there.
+  const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  let black = 0;
+  for (let i = 0; i < data.length; i += info.channels) if (data[i] + data[i + 1] + data[i + 2] < 6) black++;
+  if (black / (info.width * info.height) > EMPTY) {
+    console.log(`${id}: ${((100 * black) / (info.width * info.height)).toFixed(0)}% unrendered, skipped`);
+    empty++;
     continue;
   }
   await sharp(png).resize(TEACHER, TEACHER, { kernel: "lanczos3" }).png().toFile(join(out, `${id}.png`));
@@ -58,4 +64,4 @@ for (const { id, window, source, kind } of frames.values()) {
   counts[source] = (counts[source] ?? 0) + 1;
 }
 writeFileSync(join(here, "set-v1.json"), `${JSON.stringify(manifest)}\n`);
-console.log(`${manifest.length} frames:`, JSON.stringify(counts), `(${dark} deep-ocean frames left out)`);
+console.log(`${manifest.length} frames:`, JSON.stringify(counts), `(${empty} part-unrendered frames left out)`);
