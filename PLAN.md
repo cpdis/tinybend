@@ -142,7 +142,7 @@ All in `places/bend.json` with `id`, `name`, `lat`, `lon`, `kind`. Coordinates c
 
 ### Landmarks (picked 2026-11-27; Colin still approves each landmark's pairs on the contact sheet before training)
 
-Colin asked for distinctive places only. Seventeen:
+Colin asked for distinctive places only. Seventeen picked, fifteen kept:
 
 **Town**
 
@@ -164,8 +164,7 @@ Colin asked for distinctive places only. Seventeen:
 13. West Village lodge and base area
 14. Sunrise lodge and the tubing hill
 15. Pine Marten Lodge
-16. The summit and the Summit Express lift
-17. The Northwest Express lift
+~~16. The summit and the Summit Express lift~~ and ~~17. The Northwest Express lift~~: dropped 2026-11-28 (Colin). On the full render the top station is a small dark shape in the snow, and Northwest shows run clearings with no towers, so neither makes a useful landmark; ordinary frames cover that ground.
 
 ### Hard places (from OSM, about ten each)
 
