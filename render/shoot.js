@@ -11,6 +11,7 @@
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { chromium } from "playwright";
 import sharp from "sharp";
 import { createServer } from "vite";
@@ -48,6 +49,38 @@ const only = arg("--only", "")?.split(",").filter(Boolean);
 mkdirSync(out, { recursive: true });
 
 const key = envKey("GOOGLE_MAPS_API_KEY");
+assertKeyProject(key);
+
+/**
+ * Stops the run unless the key belongs to Tiny Bend's own Google Cloud project
+ * (cities/bend.json, accounts.googleCloudProject). Tiny Perth's renders were found billing
+ * Map Tiles to another project's key; this makes that impossible to repeat by accident.
+ * Uses the Mac's gcloud sign-in. --skip-key-check is only for a run with gcloud unavailable.
+ */
+function assertKeyProject(apiKey) {
+  if (process.argv.includes("--skip-key-check")) {
+    console.log("key check skipped (--skip-key-check)");
+    return;
+  }
+  const city = JSON.parse(readFileSync(join(here, "..", "cities", "bend.json"), "utf8"));
+  const want = city.accounts.googleCloudProject;
+  const gcloud = (args) => execFileSync("gcloud", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  let parent, number;
+  try {
+    // The key goes to gcloud as an argument and is never printed.
+    parent = gcloud(["services", "api-keys", "lookup", apiKey, "--format=value(parent)"]);
+    number = gcloud(["projects", "describe", want, "--format=value(projectNumber)"]);
+  } catch (error) {
+    throw new Error(`could not check which project the key belongs to (gcloud): ${redactKey(String(error.stderr || error.message), apiKey).slice(0, 200)}`);
+  }
+  if (!parent.startsWith(`projects/${number}/`)) {
+    throw new Error(`GOOGLE_MAPS_API_KEY belongs to ${parent}, not ${want} (projects/${number}). Use Tiny Bend's own key.`);
+  }
+  console.log(`key belongs to ${want}`);
+}
+function redactKey(text, apiKey) {
+  return text.split(apiKey).join("<key>");
+}
 const redact = (text) => String(text).split(key).join("<key>");
 
 const wanted = JSON.parse(readFileSync(framesFile, "utf8")).filter((f) => !only?.length || only.includes(f.id));
