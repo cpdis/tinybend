@@ -1,0 +1,178 @@
+[
+ {
+  "id": "west-village__c-45_r14",
+  "area": "bachelor",
+  "x": -92160,
+  "y": 28672,
+  "size": 2048,
+  "height": 1911.6,
+  "relief": 86,
+  "near": 9669.44,
+  "far": 10671.6
+ },
+ {
+  "id": "west-village__c-45_r15",
+  "area": "bachelor",
+  "x": -92160,
+  "y": 30720,
+  "size": 2048,
+  "height": 2066,
+  "relief": 382,
+  "near": 8579.66,
+  "far": 10012.04
+ },
+ {
+  "id": "west-village__c-44_r14",
+  "area": "bachelor",
+  "x": -90112,
+  "y": 28672,
+  "size": 2048,
+  "height": 1907.7,
+  "relief": 43,
+  "near": 9650.51,
+  "far": 10650.51
+ },
+ {
+  "id": "west-village__c-44_r15",
+  "area": "bachelor",
+  "x": -90112,
+  "y": 30720,
+  "size": 2048,
+  "height": 2023.2,
+  "relief": 307,
+  "near": 8682.34,
+  "far": 10005.6
+ },
+ {
+  "id": "sunrise-lodge__c-43_r15",
+  "area": "bachelor",
+  "x": -88064,
+  "y": 30720,
+  "size": 2048,
+  "height": 1966.2,
+  "relief": 203,
+  "near": 8833.25,
+  "far": 10011.81
+ },
+ {
+  "id": "sunrise-lodge__c-43_r16",
+  "area": "bachelor",
+  "x": -88064,
+  "y": 32768,
+  "size": 2048,
+  "height": 2138.5,
+  "relief": 342,
+  "near": 7913.02,
+  "far": 9285.82
+ },
+ {
+  "id": "sunrise-lodge__c-42_r15",
+  "area": "bachelor",
+  "x": -86016,
+  "y": 30720,
+  "size": 2048,
+  "height": 1946.9,
+  "relief": 104,
+  "near": 8985.43,
+  "far": 9985.43
+ },
+ {
+  "id": "sunrise-lodge__c-42_r16",
+  "area": "bachelor",
+  "x": -86016,
+  "y": 32768,
+  "size": 2048,
+  "height": 2025.8,
+  "relief": 259,
+  "near": 8124.26,
+  "far": 9379.91
+ },
+ {
+  "id": "northwest-express__c-48_r16",
+  "area": "bachelor",
+  "x": -98304,
+  "y": 32768,
+  "size": 2048,
+  "height": 1880.5,
+  "relief": 230,
+  "near": 8378.89,
+  "far": 9600.36
+ },
+ {
+  "id": "northwest-express__c-48_r17",
+  "area": "bachelor",
+  "x": -98304,
+  "y": 34816,
+  "size": 2048,
+  "height": 1976.3,
+  "relief": 230,
+  "near": 7691.92,
+  "far": 8900.28
+ },
+ {
+  "id": "northwest-express__c-47_r16",
+  "area": "bachelor",
+  "x": -96256,
+  "y": 32768,
+  "size": 2048,
+  "height": 2058.5,
+  "relief": 384,
+  "near": 8013.91,
+  "far": 9452.39
+ },
+ {
+  "id": "northwest-express__c-47_r17",
+  "area": "bachelor",
+  "x": -96256,
+  "y": 34816,
+  "size": 2048,
+  "height": 2183.6,
+  "relief": 336,
+  "near": 7326.57,
+  "far": 8675.16
+ },
+ {
+  "id": "cinder-cone__c-46_r14",
+  "area": "bachelor",
+  "x": -94208,
+  "y": 28672,
+  "size": 2048,
+  "height": 1881.8,
+  "relief": 171,
+  "near": 9559.57,
+  "far": 10696.65
+ },
+ {
+  "id": "cinder-cone__c-46_r15",
+  "area": "bachelor",
+  "x": -94208,
+  "y": 30720,
+  "size": 2048,
+  "height": 2083.1,
+  "relief": 313,
+  "near": 8630.04,
+  "far": 9966.05
+ },
+ {
+  "id": "cinder-cone__c-45_r14",
+  "area": "bachelor",
+  "x": -92160,
+  "y": 28672,
+  "size": 2048,
+  "height": 1911.6,
+  "relief": 86,
+  "near": 9669.44,
+  "far": 10671.6
+ },
+ {
+  "id": "cinder-cone__c-45_r15",
+  "area": "bachelor",
+  "x": -92160,
+  "y": 30720,
+  "size": 2048,
+  "height": 2066,
+  "relief": 382,
+  "near": 8579.66,
+  "far": 10012.04
+ }
+]
