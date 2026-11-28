@@ -1,5 +1,6 @@
 // Picks the hard places: about ten of each kind of place the model is most likely to get wrong
-// (PLAN.md, "Hard places"). Each becomes the 512 px quarter that holds the feature's centre.
+// (PLAN.md, "Hard places"). Each becomes the 512 px frame that holds the feature's centre.
+// Test places can't be picked: places/candidates.js leaves out every frame that touches one.
 //
 //   node places/hard.js places/quarter-candidates.json places/hard-frames.json
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -9,22 +10,35 @@ import { groundAt } from "./test-places.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CACHE = join(here, "hard-cache.json");
-const BBOX = "-32.07,115.735,-31.885,115.91"; // The map area: south, west, north, east.
+// Both areas in cities/bend.json, as one Overpass box (south, west, north, east). Features
+// between the boxes find no candidate quarter and drop out.
+const city = JSON.parse(readFileSync(join(here, "..", "cities", "bend.json"), "utf8"));
+const boxes = Object.values(city.areas).map((a) => a.box);
+const BBOX = [
+  Math.min(...boxes.map((b) => b.south)),
+  Math.min(...boxes.map((b) => b.west)),
+  Math.max(...boxes.map((b) => b.north)),
+  Math.max(...boxes.map((b) => b.east)),
+].join(",");
 const PER_KIND = 10;
 const APART = 1500; // Map pixels between two picks of one kind (about 440 m), so they spread out.
-const QUARTER = 512;
+const QUARTER = 512; // Map pixels, a sixteenth of a 2,048 px shot, enlarged 2x for the teacher as in Perth.
 
 // One OpenStreetMap filter per kind. "nwr" means nodes, ways and relations.
+// Bend's kinds (PLAN.md, "Hard places"). Pine canopy itself is everywhere and the general
+// frames cover it, so its hard kind is the singletrack through it.
 const KINDS = {
-  oval: 'way["leisure"="pitch"]["sport"~"australian_football|cricket"]',
-  pools: 'way["leisure"="swimming_pool"]["access"!="public"]',
-  wetland: 'nwr["natural"="wetland"]',
-  jetty: 'nwr["man_made"="pier"]',
-  beach: 'nwr["natural"="beach"]',
-  freeway: 'way["highway"="motorway"]',
-  bush: 'nwr["natural"~"wood|scrub"]',
+  singletrack: 'way["highway"="path"]["mtb:scale"]',
+  sagebrush: 'nwr["natural"~"scrub|heath|grassland"]',
+  rimrock: 'nwr["natural"~"cliff|bare_rock|scree"]',
+  cinder: 'node["natural"~"volcano|peak"]',
+  canal: 'way["waterway"="canal"]',
   golf: 'nwr["leisure"="golf_course"]',
-  industrial: 'nwr["landuse"~"industrial|railway"]',
+  roundabout: 'way["junction"~"roundabout|circular"]',
+  skirun: 'way["piste:type"="downhill"]',
+  lift: 'way["aerialway"~"chair_lift|gondola|mixed_lift|t-bar|platter|drag_lift|magic_carpet"]',
+  quarry: 'nwr["landuse"="quarry"]',
+  rapids: 'nwr["waterway"~"rapids|waterfall|weir|dam"]',
 };
 
 // Public Overpass servers are often busy, so try each in turn, a few times.
@@ -66,7 +80,8 @@ for (const [kind, filter] of Object.entries(KINDS)) {
     writeFileSync(CACHE, JSON.stringify(cache));
     await new Promise((r) => setTimeout(r, 2000));
   }
-  // Count features per quarter. A quarter with many pools is a better pools example than one with one.
+  // Count features per frame. A frame with several roundabouts or canal reaches is a better
+  // example than one with one, up to a point.
   const counts = new Map();
   for (const p of cache[kind]) {
     const c = groundAt(p.lat, p.lon);
@@ -75,7 +90,7 @@ for (const [kind, filter] of Object.entries(KINDS)) {
   }
   const random = seeded(kind.length * 7919);
   const ranked = [...counts.entries()]
-    .map(([key, count]) => ({ key, score: (kind === "pools" ? count : 1) + random() }))
+    .map(([key, count]) => ({ key, score: (kind === "roundabout" || kind === "canal" ? Math.min(count, 3) : 1) + random() }))
     .sort((a, b) => b.score - a.score);
   const picked = [];
   for (const { key } of ranked) {

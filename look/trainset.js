@@ -44,10 +44,10 @@ for (const frame of places("set-v1.json")) {
   count++;
 }
 
-// Held-out samples: the four test places, which no training frame touches, and two landmarks
+// Held-out samples: the five test places, which no training frame touches, and two landmarks
 // for comparison with ground the model has seen. Each run draws these at every checkpoint.
 const all = places("bend.json");
-const samples = [...all.filter((p) => p.kind === "test"), ...all.filter((p) => ["optus-stadium", "narrows"].includes(p.id))];
+const samples = [...all.filter((p) => p.kind === "test"), ...all.filter((p) => ["mirror-pond", "west-village"].includes(p.id))];
 for (const p of samples) {
   const c = groundAt(p.lat, p.lon);
   const png = await cropWindow("render/out/bend", { x: Math.round(c.x - SAMPLE / 2), y: Math.round(c.y - SAMPLE / 2), size: SAMPLE });
