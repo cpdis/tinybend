@@ -83,6 +83,13 @@ export const VARIANTS = [
     note: "Added after the first sheet: B's light with C's open canopy, without D's rock and snow paragraph, which F suggested caused stray contour lines and white blobs. B was dark and dense in the forest; C kept separate crowns over open ground.",
     styling: `${NEUTRAL_STYLING}\n\n${HARD_LIGHT}\n\n${OPEN_CANOPY}`,
   },
+  {
+    id: "h",
+    name: "B, with the measured green sentence",
+    note: "Added after the Phase 2 check (2026-11-28): B painted grey-olive shrubland and tan dry grass bright green on 16 of 313 frames, and left some dense dark forest photographic. H is B plus the frame's measured green sentence (look/check.js sentence). Used only to redraw the frames B failed on.",
+    styling: `${NEUTRAL_STYLING}\n\n${HARD_LIGHT}`,
+    ground: true,
+  },
 ];
 
 // Sent before the base prompt when a variant carries a draft of the same frame.
@@ -91,6 +98,8 @@ export const GUIDE_NOTE = `Two images are attached. The first is a rough, blurry
 // The variant Colin picked from the Phase 1 sheet for summer teacher calls (2026-11-28): B,
 // Perth's look with hard high-desert light. Keep modal_app/common.py in step.
 export const TEACHER_VARIANT = "b";
+// Frames B failed the check on are redrawn with H; a training pair uses H's drawing where there is one.
+export const FIX_VARIANT = "h";
 
 export function buildPrompt(variant, waterSentence, groundSentence) {
   // No style reference image goes into any call (CLAUDE.md, "Look and originality"). A guide is

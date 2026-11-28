@@ -156,8 +156,8 @@ if (mode === "sentence") {
     const [dark, light] = greenTones(data, mask);
     const sentence =
       share < MIN_GREEN
-        ? "Green: almost none in this image, so use almost none."
-        : `Green: about ${Math.round(share * 100)}% of the image is green, from ${hex(dark)} to ${hex(light)}. Every surface that is green in the image is green in the drawing, at the same size and in the same place.`;
+        ? "Green: almost none in this image, so use almost none. Grey, olive, tan and brown surfaces keep their own colour."
+        : `Green: about ${Math.round(share * 100)}% of the image is green, from ${hex(dark)} to ${hex(light)}. Every surface that is green in the image is green in the drawing, at the same size and in the same place. Every surface that is grey, olive, tan or brown in the image keeps that colour in the drawing: never turn it green.`;
     writeFileSync(join(renders, `${frame}.ground.json`), JSON.stringify({ share, sentence }, null, 2));
     console.log(`${frame}: ${sentence}`);
   }

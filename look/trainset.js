@@ -3,13 +3,19 @@
 // Also cuts the held-out frames that every training run is sampled on.
 //
 //   node look/trainset.js look/out/sets/v1 look/out/pairs/v1 look/out/train/v1
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { groundProjector } from "../render/dem.js";
 import { cropWindow } from "../render/crop.js";
-import { TEACHER_VARIANT } from "./prompts.js";
+import { FIX_VARIANT, TEACHER_VARIANT } from "./prompts.js";
+
+/** A frame's teacher drawing: the fix variant's redraw when there is one, else the teacher variant's. */
+const drawingFor = (pairs, id) => {
+  const fixed = join(pairs, `${id}.${FIX_VARIANT}.jpeg`);
+  return existsSync(fixed) ? fixed : join(pairs, `${id}.${TEACHER_VARIANT}.jpeg`);
+};
 
 const sharp = createRequire(new URL("../render/", import.meta.url))("sharp");
 const here = dirname(fileURLToPath(import.meta.url));
@@ -39,7 +45,7 @@ let count = 0;
 for (const frame of places("set-v1.json")) {
   if (rejected.has(frame.id)) continue;
   await (await control(join(renders, `${frame.id}.png`), frame.size)).toFile(join(out, "control", `${frame.id}.png`));
-  await sharp(join(pairs, `${frame.id}.${TEACHER_VARIANT}.jpeg`)).resize(frame.size, frame.size, { kernel: "lanczos3" }).png().toFile(join(out, "target", `${frame.id}.png`));
+  await sharp(drawingFor(pairs, frame.id)).resize(frame.size, frame.size, { kernel: "lanczos3" }).png().toFile(join(out, "target", `${frame.id}.png`));
   writeFileSync(join(out, "target", `${frame.id}.txt`), CAPTION);
   count++;
 }
