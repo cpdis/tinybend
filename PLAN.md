@@ -64,7 +64,7 @@ The city box runs from about Baker Road in the south to Cooley Road in the north
 
 Draw cost is about $0.28 to $0.30 per km² of map on H100s, from Perth's ledger. Rendering is under $1 for all of it. The grid (2026-11-28) has more shots than the first estimate because a shot is kept when any of its 17 × 17 ground points is inside a box, against Perth's 5 × 5: the extra shots are part-filled edges. The joint sampler draws areas over shots, so the 14% more shots (526 against about 460) could add up to that much to the draw cost unless the edge areas are trimmed in `modal_app/plan.py`; that gets measured before the draw is asked for.
 
-**Gap.** Decided 2026-11-27: one viewer, one grid, and the gap filled with a relief chart drawn in code from the DEM (Perth's `look/edges.py`), in a summer and a winter tint, with a "Fly to Bachelor" button. $0.
+**Gap.** Decided 2026-11-27: one viewer, one grid, and the gap filled with a relief chart drawn in code from the DEM (Perth's `look/edges.py`), in a summer and a winter tint, with a "Fly to Bachelor" button. $0. In Live mode the chart gets a snowline by height, so bare town and snowy Bachelor meet sensibly; its DEM adds the two W123 tiles (decided 2026-11-28, review item 7).
 
 ## Phase 1: the summer look ($10 to $15, a day)
 
@@ -88,7 +88,7 @@ Google's tiles are photographed in one season, almost certainly summer, so winte
 ### How B runs
 
 1. **Winter look ($5 to $8).** The four Phase 1 test frames' summer drawings, repainted in five variants of a winter look. Colin picks. Same rules: how to draw, never what; no place names.
-2. **Winter teacher pairs ($25 to $45).** Inputs are summer teacher drawings that already exist and passed their checks, so nothing new is rendered. About 150 to 250 frames, weighted to what snow changes most: roofs, roads and car parks, pine canopy, lawns and golf courses, lava and cinder, water, ski runs and lifts.
+2. **Winter teacher pairs ($25 to $45).** Inputs are crops cut from the finished summer map, at the teacher frames' positions, so the winter LoRA learns from exactly the pixels it later repaints (decided 2026-11-28, review item 1). Nothing new is rendered. About 150 to 250 frames, weighted to what snow changes most: roofs, roads and car parks, pine canopy, lawns and golf courses, lava and cinder, water, ski runs and lifts.
 3. **Winter pilot LoRA ($2 to $5).** FLUX.2 klein 4B, rank 32, about 2,000 steps, control image = summer drawing, target = winter drawing, a fixed caption with its own token. One extra run with the snow mask tinted onto the control image (as Perth's "marked water" test), to see if coverage follows the rules better.
 4. **Draw winter ($65 to $70).** The summer map's sheets cut back into the shot grid as `/renders/bend-summer-map`, and `map_run.py --renders bend-summer-map --lora winter-v1 --version winter-v1` (without `--version` it finds summer's finished `v1` order and draws nothing; `sample.py` also needs the winter caption and training folder, `docs/porting.md`). Same areas, same pins, same waves.
 5. **Winter water repaint, tiles, check.** `look/flatten-water.js` with a winter colour table (open river dark and cold, frozen ponds white), tiles as `winter-v1/` with a `tiles.json` identical to summer's.
@@ -113,15 +113,17 @@ A typical patchy January was considered and not chosen: the drawn winter is the 
 The map has two drawn states, bare summer and fresh-storm winter. With the season on Live, the viewer shows what Bend has right now:
 
 - **Snow on the ground, per box.** Snow depth from Open-Meteo (free, keyless, read-only) for one point downtown and one at West Village, through `site/api/weather.js` beside the METAR, cached for an hour. Each box picks its own state: Bachelor is snowy from about November to June while town is often bare, so the town and Bachelor tile layers are clipped to their own boxes and switch separately.
-- **In-between snow** (a dusting, or a melt days after a storm). A third state built in code, $0: a "melt order" tile set baked once from the depth pass, the DEM and OSM, 8-bit like Perth's depth tiles, saying how early each pixel loses its snow. Roads, south-facing roofs and slopes, and sun-warmed open ground go first; north faces, shade under pines and snowbanks last. The viewer shows the winter tiles where the melt order is above a threshold set by snow depth, and summer below it, with a soft edge. Both tile sets are pixel-aligned, so the blend has no ghosting. About 0.3 GB more hosting. A later phase: the two drawn seasons ship first.
-- **Falling snow and rain** when Bend Municipal's METAR reports SN or RA (Redmond as fallback), drawn as particles over the map, with fog and low cloud from the METAR as Perth does.
-- **Real cloud** by day from GOES-West's visible band via NASA GIBS, as Perth's Himawari cloud: shadows and soft tops, METAR drawing at night or when the picture is stale.
+- **In-between snow** (a dusting, or a melt days after a storm). A third state built in code, $0: a "melt order" tile set baked once from the depth pass, the DEM and OSM, 8-bit like Perth's depth tiles, saying how early each pixel loses its snow. Roads, south-facing roofs and slopes, and sun-warmed open ground go first; north faces, shade under pines and snowbanks last. The viewer shows the winter tiles where the melt order is above a threshold set by snow depth, and summer below it, with an ordered-dither edge in whole map pixels, never a soft alpha fade (decided 2026-11-28, review item 9). Both tile sets are pixel-aligned, so the blend has no ghosting. About 0.3 GB more hosting. A later phase: the two drawn seasons ship first.
+- **Falling snow and rain** per box from Open-Meteo's weather code and snowfall (already fetched for snow depth), so Bachelor snows when Bachelor is snowing; Bend Municipal's METAR (Redmond as fallback) still drives fog and low cloud over town (decided 2026-11-28, review item 5).
+- **Real cloud** by day from GOES-West via NASA GIBS, using a product that tells cloud from snow (day cloud phase or the 1.6 µm band), or the visible band only when the weather feed reports cloud, so snow on the ground never reads as overcast (decided 2026-11-28, review item 6). METAR drawing at night or when the picture is stale.
 - **Night.** Lit windows, street lights and the lodges' and car parks' lights (Bachelor has no night skiing) reflect off snow: the winter tiles get a brighter night glow than summer's.
 - Manual override stays: the toggle picks Summer, Winter or Live, and `?season=` links to one.
 
 ### Checks for winter
 
-- **Outline agreement with summer.** `look/check.js`'s outline check, run summer tile against winter tile: fails on 5 or more of 64 cells differing. This is the toggle's proof of alignment.
+Winter gets its own check, not `look/check.js`'s summer tests (lost green, brightness, outlines would reject good snow; decided 2026-11-28, review item 3):
+
+- **Outline agreement with summer.** An outline check, run summer tile against winter tile: fails on 5 or more of 64 cells differing. This is the toggle's proof of alignment.
 - **Coverage in code.** Inside each tile, the share of non-water, non-cleared-road ground that is bright and unsaturated stays above a threshold set on the pilot; open-river pixels (OSM) stay dark; cleared arterials stay dark.
 - **Snow drawn wrong.** Snow drawn as water or cloud, and grey-blue water drawn as snow: a Jev question in `judge/questions.py`, flagged tiles to a person.
 
@@ -216,20 +218,20 @@ Hosting stays at $0: two seasons of about 230 km² come to about 1.4 GiB, plus a
 
 1. Phase 0b probe ($0), done. 2. Colin's decisions, done 2026-11-27. 3. Phase 0 repo and accounts. 3b. A second probe of West Village, Sunrise, the Northwest Express and the cinder-cone test place with the fixed grid (about 8 shots, under $0.05), since the first probe never saw them. 4. Summer: look, render, set, teacher, pilot, draw, sheets, water, tiles, check. 5. Winter: look, teacher, pilot, draw over the summer map, water, tiles, check. 6. Site with the toggle, life layers per season, write-up. Summer can ship alone first.
 
-## Open questions from the Gemini review (2026-11-28, for Colin)
+## Decisions from the Gemini review (Colin, 2026-11-28)
 
-Gemini 4 Neon reviewed this plan and the setup. Its fixes to numbers and facts are folded in above. These change the design, so they are Colin's to decide:
+Gemini 4 Neon reviewed this plan and the setup. Its fixes to numbers and facts are folded in above. Colin accepted these design changes on 2026-11-28, all $0:
 
-1. **Winter control images from the finished summer map**, not from the summer teacher drawings. The winter LoRA would then train on exactly what it later repaints (FLUX's grain, joins and flattened water). $0, since winter waits for summer anyway. Recommended.
-2. **Winter pinning fill.** `sample.py` fills the unpinned area with the render to avoid a 20-level brightness seam; in winter that is the dark summer map against bright snow, the same seam. Fill from the pinned winter neighbours instead. Recommended.
-3. **Winter checks.** `look/check.js`'s green, scene and outline tests would reject good snow drawings and burn redraws. Winter needs its own check (outline agreement with summer plus the snow coverage rules), not Perth's. Recommended.
-4. **Snow rules the LoRA can't see.** From summer pixels alone the winter LoRA can't tell a frozen pond from an open one, a collector from a residential street, or 1,100 m from 1,900 m. Either make the tinted control mask the main design from the start, or keep only the rules a picture shows and do water and frozen ponds after drawing.
-5. **Live weather on the mountain.** Bend's and Redmond's METARs often miss Bachelor's storms. Use Open-Meteo's weather code and snowfall per box (already fetched for snow depth) for falling snow, and keep METAR for town fog and cloud base.
-6. **Cloud over snow.** GOES-West's visible band can't tell snow from cloud, so a snowy Bachelor would read as overcast. Use a snow-aware product (day cloud phase, or the 1.6 µm band) or gate it on cloud cover.
-7. **Gap chart in Live mode.** With town bare and Bachelor snowy, the relief chart needs a snowline tint by height, not one of two flat tints. Its DEM also needs the two W123 tiles if it pads west of 122°W.
-8. **Heights for life layers and water.** GLO-30 is a 30 m surface model (treetops included). For water masks, melt order and life layers, use the render's own depth pass where it exists and USGS 3DEP (10 m bare earth, free) elsewhere. The shot grid can stay on GLO-30.
-9. **Melt-order blend.** Ordered dithering over a smoothed melt mask instead of a soft alpha edge, to stay pixel-art and avoid three tile sets loading at once.
-10. **Drawing order on two boxes.** `modal_app/plan.py` grows areas in rings from Perth's corner. Bend needs a ring origin per box, so Bachelor grows from one seed instead of starting several unpinned areas in one wave.
+1. **Winter trains on the finished summer map.** Winter teacher inputs are cut from the summer map, not Gemini's summer drawings (How B runs, step 2).
+2. **Winter join fill.** `sample.py` fills the unpinned area from the pinned winter neighbours' own colours, not the dark summer map, so the 20-level brightness seam doesn't come back.
+3. **Winter has its own checks** (Checks for winter).
+4. **Snow rules the LoRA can't see.** Decided at the winter pilot, trying the tinted guide image (cleared roads, open and frozen water, height bands, steep rock) first; the fallback keeps only rules a picture shows and fixes water and frozen ponds after drawing.
+5. **Falling snow per box from Open-Meteo**; METAR for town fog and cloud (Live snow and weather).
+6. **Snow-aware cloud** from GOES-West (Live snow and weather).
+7. **Gap chart snowline in Live mode**, plus the W123 DEM tiles (Area, Gap). Site phase.
+8. **Heights for water and life layers** from the render's depth pass, with USGS 3DEP (10 m bare earth) where depth is missing, not GLO-30. The shot grid stays on GLO-30. Site phase and water steps.
+9. **Melt edge dithered** in whole pixels, not a soft fade (Live snow and weather).
+10. **A ring origin per box** in `modal_app/plan.py`, so Bachelor grows from one seed. Before the summer draw.
 
 ## Risks
 

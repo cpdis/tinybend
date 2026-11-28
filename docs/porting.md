@@ -20,15 +20,15 @@ row says what to change. Delete a row when its PR lands.
 | `scripts/og/og.html` | tinyperth.com and its tile host | Bend's domain (open) | site |
 | `docs/agent-native.md` | Perth's agent API notes | Rewrite for Bend's site | site |
 | `modal_app/train.py` | One caption | A second, own-token caption for the winter LoRA | winter step 3 |
-| `modal_app/plan.py` | `ORIGIN = (-5335, -1041)`, rings from Perth's corner | A ring origin per box on the 2,048 px grid (PLAN.md, open question 10) | 2 |
+| `modal_app/plan.py` | `ORIGIN = (-5335, -1041)`, rings from Perth's corner | A ring origin per box on the 2,048 px grid (PLAN.md, review decision 10) | 2 |
 | `modal_app/map_run.py` | `AREA_COST` charged whole for edge areas; `SEED` now empty | Prorate by shot coverage, or raise Modal limits (PLAN.md, Cost) | 2 |
-| `modal_app/sample.py` | Summer `CAPTION` and `/vol/train/v1` hard-coded; pinned fill from the render | Caption and training folder per LoRA; winter fill from pinned neighbours (open question 2) | winter step 4 |
+| `modal_app/sample.py` | Summer `CAPTION` and `/vol/train/v1` hard-coded; pinned fill from the render | Caption and training folder per LoRA; winter fill from pinned neighbours (review decision 2) | winter step 4 |
 | `places/hard.js` | Perth `BBOX` and `KINDS` (pools, beaches) | Both boxes from `cities/bend.json`; Bend's hard kinds (PLAN.md, Hard places) | 2 |
 | `look/trainset.js` | Seen-landmark samples `optus-stadium`, `narrows`; `set-v1.json` | Two Bend landmark ids; Bend's set files | 2 |
 | `look/water.js`, `look/flatten-water.js` | One `WATER_LEVEL = -31` for every pixel | Water height per pixel from the depth pass or the DEM (the Deschutes drops about 110 m across town) | 1 |
 | `look/osm-water.js` | Treats land west of Perth's coastline as sea; Bend has no coastline, so every pixel reads as water | Drop the coast test; water from OSM polygons only | 1 |
 | `look/flatten-water.js` | No winter colour table; skips water within 3 cells of shore | A winter table (open river, frozen ponds) and a narrower shore band for canals | winter step 5 |
-| `look/check.js` | Summer checks only | A winter check (open question 3) | winter step 2 |
+| `look/check.js` | Summer checks only | A winter check (review decision 3) | winter step 2 |
 
 Not copied, and brought over when the site phase starts: `site/`, `life/`, `presence/`,
 `ships/` (no ferries in Bend), and the site tests. Perth's frames, place lists, style reference
