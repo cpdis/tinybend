@@ -35,7 +35,9 @@ export async function shotSurface(folder, meta) {
   const fallback = await demSurface();
   if (!existsSync(depthPath) || !meta.depth) return { at: fallback, source: "dem" };
   const { near, far } = meta.depth;
-  const { data, info } = await sharp(depthPath).raw({ depth: "ushort" }).toBuffer({ resolveWithObject: true });
+  // A grey16 PNG must be read as one 16-bit channel: without toColourspace, sharp returns it as
+  // 8-bit-range sRGB (values of about 65 to 220), and every pixel decodes to the near plane.
+  const { data, info } = await sharp(depthPath).toColourspace("grey16").raw({ depth: "ushort" }).toBuffer({ resolveWithObject: true });
   const values = new Uint16Array(data.buffer, data.byteOffset, data.length / 2);
   const { x: x0, y: y0, size } = meta.window;
   const camera = meta.camera;
