@@ -105,10 +105,26 @@ function settle() {
   return new Promise((resolve, reject) => {
     const started = performance.now();
     let stable = 0;
+    let done = false;
+    // requestAnimationFrame stops when the display sleeps, and then the check below never runs:
+    // the shot hung for 10 minutes with no error on the first full Bend render. A wall-clock
+    // timer still fires, so a stall fails loudly and shoot.js retries it.
+    const watchdog = setTimeout(() => {
+      if (done) return;
+      done = true;
+      reject(new Error(`tiles did not settle in ${SHOT_TIMEOUT_MS / 1000} s (no frames drawn: is the display asleep?): ${JSON.stringify(tiles.stats)}`));
+    }, SHOT_TIMEOUT_MS + 5000);
+    const finish = (fn) => {
+      if (done) return;
+      done = true;
+      clearTimeout(watchdog);
+      fn();
+    };
     window.SETTLE = { frames: 0, busyFrames: 0, lastBusyMs: 0, maxQueued: 0, maxDownloading: 0, maxParsing: 0 };
     const step = () => {
+      if (done) return;
       if (performance.now() - started > SHOT_TIMEOUT_MS) {
-        reject(new Error(`tiles did not settle: ${JSON.stringify(tiles.stats)}`));
+        finish(() => reject(new Error(`tiles did not settle: ${JSON.stringify(tiles.stats)}`)));
         return;
       }
       camera.updateMatrixWorld(true);
@@ -126,7 +142,7 @@ function settle() {
       d.maxDownloading = Math.max(d.maxDownloading, downloading);
       d.maxParsing = Math.max(d.maxParsing, parsing);
       stable = queued + downloading + parsing > 0 ? 0 : stable + 1;
-      if (stable >= STABLE_FRAMES && tiles.root) resolve();
+      if (stable >= STABLE_FRAMES && tiles.root) finish(resolve);
       else requestAnimationFrame(step);
     };
     step();
