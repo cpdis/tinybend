@@ -17,7 +17,7 @@ The project ships two things: the map, and a write-up of how it was made (`write
 - **Accounts.** Ask before creating or changing Google Cloud projects, billing, API keys or quotas. Same for Modal Volumes and secrets, R2 buckets and tokens, and Vercel projects.
 - **City config.** `cities/bend.json` holds the camera, the two areas, the DEM and the account names. `render/camera.js` must match it (`tests/test_city.mjs`). Place things by `groundProjector()` from `render/dem.js`, never by one ground height.
 - **Data.** Never delete from the Modal Volume or R2, and never overwrite a published tile version. Fixes ship as new versions or patch folders. Shots go to the Volume whole (colour, depth and sidecar, `scripts/put-shots.py`), and depth and sidecars are backed up before any cleanup on the Mac.
-- **Long runs.** Runs over 10 minutes go to Colin's Mac through Remote Control. If it can't be reached in 2 minutes, run in the cloud and say so.
+- **Long runs.** Runs over 10 minutes go to Colin's Mac through Remote Control. If it can't be reached in 2 minutes, run in the cloud and say so, except renders: they need the Mac's GPU and the localhost-only Google key, so a render waits for the Mac.
 - **Python.** Through uv (`uv run --with ...`), never a bare pip.
 - **Publishing.** Ask before writing to the public R2 bucket or deploying the website.
 - **Gemini reviewer.** In cloud sessions, `scripts/agy-review` uses `GEMINI_API_KEY` only. On Colin's Mac, agy may use his own Google sign-in (Colin, 2026-11-28).

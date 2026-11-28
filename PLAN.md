@@ -9,7 +9,7 @@ The project ships two things, as Perth did: the map and a write-up of how it was
 - **Seasons:** summer is drawn from Google's render. Winter is drawn from the finished summer map by a second LoRA, so both seasons share every pixel position. Decided 2026-11-27. See "Winter".
 - **Source data:** Google Photorealistic 3D Tiles on a new Google Cloud project (Phase 0).
 - **Compute:** Modal for everything after rendering, as Perth.
-- **Expected cost:** about $125 to $160 for summer and $100 to $140 for winter, so about $225 to $300 for both. A lean version (smaller teacher sets) is about $200 to $210. Hosting $0.
+- **Expected cost:** about $125 to $160 for summer and $100 to $140 for winter, so about $225 to $300 for both. A lean version (smaller teacher sets) is about $220 to $260 (corrected 2026-11-28: the earlier $200 to $210 did not add up). The grid came out 14% bigger than estimated, which can add up to about $20 across both draws unless edge areas are trimmed. Hosting $0.
 
 ## Where each step runs
 
@@ -21,17 +21,17 @@ Unchanged from Perth: render on Colin's Mac (WebGL needs a real GPU), teacher ca
 - [x] `scripts/put-shots.py` now uploads every shot whole (colour, depth PNG and sidecar) by default, and refuses to start if any shot is missing a part; `--colour-only` for drawing-only folders (2026-11-28).
 - [x] Ground height per shot (2026-11-28). `render/dem.js` reads the Copernicus DEM (GLO-30, two 1° tiles) and adds the geoid offset, -20.1 m, measured on the probe's depth pass. `render/grid.js` finds where each of 17 × 17 view rays per shot meets the DEM: those ground points decide the area test, and the depth range runs from 150 m above to 60 m below them, at least 1 km wide. `render/shoot.js` uses each frame's `near` and `far`. On the probe's Bachelor window, which had a third of its depth clamped, every unclamped depth falls inside the new 1.5 km range; town shots keep a 1 km range. The grid: 368 city shots (ground 1,013 to 1,286 m) and 158 Bachelor shots (1,584 to 2,634 m), 526 in all; 70 have a range wider than 1 km.
 - [x] Camera origin in `cities/bend.json`: 44.0582, -121.3153, 1,085 m, mirrored in `render/camera.js` and checked by `tests/test_city.mjs`.
-- [ ] Google Cloud project for Bend's renderer (not `tinyperth-maps`), key restricted to the Map Tiles API and localhost referrers, daily root-request cap, budget alert.
-- [ ] Modal Volume `tinybend`, reusing the `huggingface` and `gemini` secrets; `r2` for the new bucket. The code now names `tinybend` with `create_if_missing=False`, so the Volume is made once, on purpose (`modal volume create tinybend`).
-- [ ] R2 bucket `tinybend-tiles`, token scoped to it, public custom domain, CORS GET.
-- [ ] Vercel project from the repo (Root Directory `site`), Web Analytics on.
+- [ ] Google Cloud project for Bend's renderer (not `tinyperth-maps`), key restricted to the Map Tiles API and localhost referrers, daily root-request cap, budget alert. 2026-11-28: project `tinybend-maps` made, Map Tiles API on, key (Map Tiles only, `http://localhost:8080/*`) in the Mac's `.env`, root-tileset cap 150 a day as Perth. **Not billed yet:** the billing account is at Google's 5-project limit, so the link and the $25 budget wait on Colin freeing a slot.
+- [x] Modal Volume `tinybend` made 2026-11-28; `huggingface` and `gemini` secrets reused. The R2 token becomes Modal secret `r2-tinybend`, never `r2`: secrets are shared across the workspace, and `r2` is Perth's. The code now names `tinybend` with `create_if_missing=False`, so the Volume is made once, on purpose (`modal volume create tinybend`).
+- [ ] R2 bucket `tinybend-tiles`, token scoped to it, public custom domain, CORS GET. 2026-11-28: blocked, the Cloudflare token on the Mac has no R2 permission; Colin makes the bucket and token in the dashboard. The custom domain waits for the domain.
+- [ ] Vercel project from the repo (Root Directory `site`), Web Analytics on. 2026-11-28: project `tinybend` made, not linked to the repo until `site/` exists (else every push fails a build). Web Analytics is a dashboard switch for Colin.
 - [ ] Domain: Colin registers it on Cloudflare.
 - [ ] Keys into 1Password before any are copied (Colin's to-do).
 - [ ] First journal entry with setup screenshots, accounts covered.
 
 ## Phase 0b: coverage probe ($0, Mac)
 
-Seven spots, 2 × 2 shots of 2,048 px each (28 shots, about 6 minutes), on the real Bend grid: `probe/bend-probe.json`, shot with Perth's renderer and camera.js moved to the Bend origin (`probe/camera.bend.js`). Run `render/check-shots.js` on them and look by eye.
+Seven spots, 2 × 2 shots of 2,048 px each (28 shots; it took about 11 minutes, so the full 526-shot render is about 3.5 hours on the Mac), on the real Bend grid: `probe/bend-probe.json`, shot with Perth's renderer and camera.js moved to the Bend origin (`probe/camera.bend.js`). Run `render/check-shots.js` on them and look by eye.
 
 | Spot | Why |
 | --- | --- |
@@ -60,7 +60,7 @@ Two boxes on one grid. Bachelor is about 30 km west-southwest of downtown, and a
 | City (widened west to take in Phil's trails, chosen 2026-11-27) | 44.00 to 44.11 N, 121.42 to 121.25 W | 166 km² | 368 (grid, 2026-11-28) | $47 to $50 |
 | Bachelor | 43.949 to 44.021 N, 121.73 to 121.63 W | 64 km² | 158 (grid, 2026-11-28) | $18 to $20 |
 
-The city box runs from about Baker Road in the south to Cooley Road in the north, and from the Phil's trail network west of Shevlin Park to past the eastside subdivisions. No Lava Butte patch (decided 2026-11-27). It keeps the river from Farewell Bend to First Street Rapids, Pilot Butte, Awbrey Butte and the airport road. Edges get fixed after the probe, from city limits in OpenStreetMap.
+The city box runs from about Baker Road in the south to Cooley Road in the north, and from the Phil's trail network west of Shevlin Park to past the eastside subdivisions. No Lava Butte patch (decided 2026-11-27). It keeps the river from Farewell Bend to First Street Rapids, Pilot Butte and Awbrey Butte. Bend Municipal Airport is about 4 km east of the box and is not in it. The edges are the boxes in `cities/bend.json`.
 
 Draw cost is about $0.28 to $0.30 per km² of map on H100s, from Perth's ledger. Rendering is under $1 for all of it. The grid (2026-11-28) has more shots than the first estimate because a shot is kept when any of its 17 × 17 ground points is inside a box, against Perth's 5 × 5: the extra shots are part-filled edges. The joint sampler draws areas over shots, so the 14% more shots (526 against about 460) could add up to that much to the draw cost unless the edge areas are trimmed in `modal_app/plan.py`; that gets measured before the draw is asked for.
 
@@ -90,7 +90,7 @@ Google's tiles are photographed in one season, almost certainly summer, so winte
 1. **Winter look ($5 to $8).** The four Phase 1 test frames' summer drawings, repainted in five variants of a winter look. Colin picks. Same rules: how to draw, never what; no place names.
 2. **Winter teacher pairs ($25 to $45).** Inputs are summer teacher drawings that already exist and passed their checks, so nothing new is rendered. About 150 to 250 frames, weighted to what snow changes most: roofs, roads and car parks, pine canopy, lawns and golf courses, lava and cinder, water, ski runs and lifts.
 3. **Winter pilot LoRA ($2 to $5).** FLUX.2 klein 4B, rank 32, about 2,000 steps, control image = summer drawing, target = winter drawing, a fixed caption with its own token. One extra run with the snow mask tinted onto the control image (as Perth's "marked water" test), to see if coverage follows the rules better.
-4. **Draw winter ($55 to $60, or $65 to $70 with the trails strip).** The summer map's sheets cut back into the shot grid as `/renders/bend-summer-map`, and `map_run.py --renders bend-summer-map --lora winter-v1`. Same areas, same pins, same waves.
+4. **Draw winter ($65 to $70).** The summer map's sheets cut back into the shot grid as `/renders/bend-summer-map`, and `map_run.py --renders bend-summer-map --lora winter-v1 --version winter-v1` (without `--version` it finds summer's finished `v1` order and draws nothing; `sample.py` also needs the winter caption and training folder, `docs/porting.md`). Same areas, same pins, same waves.
 5. **Winter water repaint, tiles, check.** `look/flatten-water.js` with a winter colour table (open river dark and cold, frozen ponds white), tiles as `winter-v1/` with a `tiles.json` identical to summer's.
 
 ### Where snow goes
@@ -116,7 +116,7 @@ The map has two drawn states, bare summer and fresh-storm winter. With the seaso
 - **In-between snow** (a dusting, or a melt days after a storm). A third state built in code, $0: a "melt order" tile set baked once from the depth pass, the DEM and OSM, 8-bit like Perth's depth tiles, saying how early each pixel loses its snow. Roads, south-facing roofs and slopes, and sun-warmed open ground go first; north faces, shade under pines and snowbanks last. The viewer shows the winter tiles where the melt order is above a threshold set by snow depth, and summer below it, with a soft edge. Both tile sets are pixel-aligned, so the blend has no ghosting. About 0.3 GB more hosting. A later phase: the two drawn seasons ship first.
 - **Falling snow and rain** when Bend Municipal's METAR reports SN or RA (Redmond as fallback), drawn as particles over the map, with fog and low cloud from the METAR as Perth does.
 - **Real cloud** by day from GOES-West's visible band via NASA GIBS, as Perth's Himawari cloud: shadows and soft tops, METAR drawing at night or when the picture is stale.
-- **Night.** Lit windows, street lights and ski-area lights reflect off snow: the winter tiles get a brighter night glow than summer's.
+- **Night.** Lit windows, street lights and the lodges' and car parks' lights (Bachelor has no night skiing) reflect off snow: the winter tiles get a brighter night glow than summer's.
 - Manual override stays: the toggle picks Summer, Winter or Live, and `?season=` links to one.
 
 ### Checks for winter
@@ -130,11 +130,11 @@ The map has two drawn states, bare summer and fresh-storm winter. With the seaso
 - **Green.** `look/check.js`'s "keeps 60% of the render's clear green" assumes lawns. Recalibrate on Bend frames: high desert is grey-green and sparse.
 - **Snow (summer).** Snowfields drawn as water, cloud or sand; snow invented on bare grey cinder.
 - **Lava.** Basalt drawn as water or asphalt.
-- **Water.** As Perth, plus large lakes at Bachelor may show textured rectangles where Google's photo ends.
+- **Water.** As Perth. The Cascade lakes (Todd, Sparks, Elk) are outside the Bachelor box; only Sparks Lake's marshy east tip may touch its north-west corner.
 
 ## Bend places in training
 
-All in `places/bend.json` with `id`, `name`, `lat`, `lon`, `kind`. Coordinates are fixed from OSM in the repo setup thread. Landmarks need Colin's approval on a contact sheet before training, for each season's pairs.
+All in `places/bend.json` with `id`, `name`, `lat`, `lon`, `kind`. Coordinates come from OSM, fetched on the Mac (the cloud can't reach Overpass); `places/bend.json` is empty until then. Landmarks need Colin's approval on a contact sheet before training, for each season's pairs.
 
 ### Landmarks (picked 2026-11-27; Colin still approves each landmark's pairs on the contact sheet before training)
 
@@ -200,21 +200,36 @@ The season toggle offers Summer, Winter and Live (the default, from real snow de
 | Step | Summer | Winter |
 | --- | --- | --- |
 | Coverage probe and all renders | under $1 | $0 (reuses summer's) |
-| Look choice (Gemini) | $10 to $15 | $5 to $8 |
+| Look choice (Gemini) | $10 to $15 | $5 to $11 (80 calls if drawn as 2x quarters) |
 | Teacher pairs | $40 to $60 (250 to 350 frames) | $25 to $45 (150 to 250 frames) |
-| Pilot LoRA | $2 to $5 | $2 to $5 |
+| Pilot LoRA | $2 to $5 | $4 to $10 (two runs: plain and tinted mask) |
 | Draw city box (166 km²) | $47 to $50 | $47 to $50 |
 | Draw Bachelor (64 km²) | $18 to $20 | $18 to $20 |
 | Tile check and patch redraws | $5 to $10 | $5 to $10 |
 | **Total** | **about $125 to $160** | **about $100 to $140** |
 
-Both seasons: about $225 to $300. With 200 summer pairs and 150 winter pairs: about $200 to $210. Live snow, melt order, cloud and weather are code and free data: $0. Each paid run is still asked for on its own, with its estimate. Modal's two limits need room for each drawing phase: about $70 per season, so the December limits should be checked before the summer draw.
+Both seasons: about $225 to $300. With 200 summer pairs and 150 winter pairs: about $220 to $260 (teacher calls at about $0.136 each, plus about a quarter redrawn). Live snow, melt order, cloud and weather are code and free data: $0. Each paid run is still asked for on its own, with its estimate. Modal's two limits need room for each drawing phase. `map_run.py` budgets every area as a whole one ($2.10), and the grid has 57 areas (37 city, 20 Bachelor), so its guard wants about $120 plus a $10 margin per season even though the real draw is about $65 to $70. Either prorate `AREA_COST` by how much of an area has shots, or set the limits to about $130 per season, before the summer draw.
 
 Hosting stays at $0: two seasons of about 230 km² come to about 1.4 GiB, plus about 0.3 GB of melt-order tiles, of tiles, well inside R2's free 10 GB.
 
 ## Order
 
-1. Phase 0b probe ($0). 2. Colin's decisions below. 3. Phase 0 repo and accounts. 4. Summer: look, render, set, teacher, pilot, draw, sheets, water, tiles, check. 5. Winter: look, teacher, pilot, draw over the summer map, water, tiles, check. 6. Site with the toggle, life layers per season, write-up. Summer can ship alone first.
+1. Phase 0b probe ($0), done. 2. Colin's decisions, done 2026-11-27. 3. Phase 0 repo and accounts. 3b. A second probe of West Village, Sunrise, the Northwest Express and the cinder-cone test place with the fixed grid (about 8 shots, under $0.05), since the first probe never saw them. 4. Summer: look, render, set, teacher, pilot, draw, sheets, water, tiles, check. 5. Winter: look, teacher, pilot, draw over the summer map, water, tiles, check. 6. Site with the toggle, life layers per season, write-up. Summer can ship alone first.
+
+## Open questions from the Gemini review (2026-11-28, for Colin)
+
+Gemini 4 Neon reviewed this plan and the setup. Its fixes to numbers and facts are folded in above. These change the design, so they are Colin's to decide:
+
+1. **Winter control images from the finished summer map**, not from the summer teacher drawings. The winter LoRA would then train on exactly what it later repaints (FLUX's grain, joins and flattened water). $0, since winter waits for summer anyway. Recommended.
+2. **Winter pinning fill.** `sample.py` fills the unpinned area with the render to avoid a 20-level brightness seam; in winter that is the dark summer map against bright snow, the same seam. Fill from the pinned winter neighbours instead. Recommended.
+3. **Winter checks.** `look/check.js`'s green, scene and outline tests would reject good snow drawings and burn redraws. Winter needs its own check (outline agreement with summer plus the snow coverage rules), not Perth's. Recommended.
+4. **Snow rules the LoRA can't see.** From summer pixels alone the winter LoRA can't tell a frozen pond from an open one, a collector from a residential street, or 1,100 m from 1,900 m. Either make the tinted control mask the main design from the start, or keep only the rules a picture shows and do water and frozen ponds after drawing.
+5. **Live weather on the mountain.** Bend's and Redmond's METARs often miss Bachelor's storms. Use Open-Meteo's weather code and snowfall per box (already fetched for snow depth) for falling snow, and keep METAR for town fog and cloud base.
+6. **Cloud over snow.** GOES-West's visible band can't tell snow from cloud, so a snowy Bachelor would read as overcast. Use a snow-aware product (day cloud phase, or the 1.6 µm band) or gate it on cloud cover.
+7. **Gap chart in Live mode.** With town bare and Bachelor snowy, the relief chart needs a snowline tint by height, not one of two flat tints. Its DEM also needs the two W123 tiles if it pads west of 122°W.
+8. **Heights for life layers and water.** GLO-30 is a 30 m surface model (treetops included). For water masks, melt order and life layers, use the render's own depth pass where it exists and USGS 3DEP (10 m bare earth, free) elsewhere. The shot grid can stay on GLO-30.
+9. **Melt-order blend.** Ordered dithering over a smoothed melt mask instead of a soft alpha edge, to stay pixel-art and avoid three tile sets loading at once.
+10. **Drawing order on two boxes.** `modal_app/plan.py` grows areas in rings from Perth's corner. Bend needs a ring origin per box, so Bachelor grows from one seed instead of starting several unpinned areas in one wave.
 
 ## Risks
 

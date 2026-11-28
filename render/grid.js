@@ -35,28 +35,50 @@ export function inOutline(lat, lon, outline) {
   return inside;
 }
 
+const TOP = 3300; // Above Bachelor's summit (2,740 m on the ellipsoid): every ray starts in clear air.
+const BOTTOM = 800; // Below Bend's lowest ground.
+const STEP = 15; // Metres along the ray per step: half the DEM's 30 m spacing.
+
 /**
- * Where the view ray through pixel (x, y) meets the ground, as { lat, lon, height, depth }, or
- * null off the DEM. A fixed-point search: guess a height, find where the ray reaches it, read
- * the DEM there, repeat. Damped after a few steps so it settles on slopes near 45 degrees too.
+ * Where the view ray through pixel (x, y) first meets the ground, as { lat, lon, height, depth },
+ * or null off the DEM. The ray is walked from above the highest ground towards the camera's
+ * far side in 15 m steps, and the first step that goes below the DEM is refined by bisection.
+ * Walking from the camera side finds the surface the camera sees: the crest of a ridge or the
+ * rim of a cliff, never ground hidden behind it. (A fixed-point search on height, tried first,
+ * could settle on that hidden ground behind slopes steeper than 45 degrees, and converged slowly
+ * on slopes facing away from the camera: Gemini review, 2026-11-28.)
  */
-export function groundUnder(x, y, dem, start = CITY.camera.origin.height) {
-  let h = start;
-  let p = null;
-  for (let i = 0; i < 16; i++) {
-    const depth = depthAtHeight(x, y, h);
-    p = unproject(x, y, depth);
+export function groundUnder(x, y, dem) {
+  const near = depthAtHeight(x, y, TOP);
+  const far = depthAtHeight(x, y, BOTTOM);
+  const above = (depth) => {
+    const p = unproject(x, y, depth);
     const ground = dem.height(p.lat, p.lon);
-    if (ground === null) return null;
-    const next = i < 4 ? ground : (h + ground) / 2;
-    if (Math.abs(next - h) < 0.25) {
-      h = next;
-      break;
+    return ground === null ? null : p.height - ground;
+  };
+  let a = near;
+  let fa = above(a);
+  if (fa === null) return null;
+  for (let b = near + STEP; b <= far + STEP; b += STEP) {
+    const fb = above(b);
+    if (fb === null) return null;
+    if (fb <= 0) {
+      // The ray crossed the ground between a and b.
+      let lo = a, hi = b;
+      for (let i = 0; i < 20 && hi - lo > 0.05; i++) {
+        const mid = (lo + hi) / 2;
+        const fm = above(mid);
+        if (fm === null) return null;
+        if (fm > 0) lo = mid;
+        else hi = mid;
+      }
+      const depth = (lo + hi) / 2;
+      return { ...unproject(x, y, depth), depth };
     }
-    h = next;
+    a = b;
+    fa = fb;
   }
-  const depth = depthAtHeight(x, y, h);
-  return { ...unproject(x, y, depth), height: h, depth };
+  return null;
 }
 
 /**
@@ -65,16 +87,12 @@ export function groundUnder(x, y, dem, start = CITY.camera.origin.height) {
  */
 export function shotGround(x0, y0, size, dem, g = CITY.ground) {
   const points = [];
-  let start = CITY.camera.origin.height;
   for (let j = 0; j <= LATTICE; j++) {
     for (let i = 0; i <= LATTICE; i++) {
       const x = x0 + (i / LATTICE) * size;
       const y = y0 + (j / LATTICE) * size;
-      const p = groundUnder(x, y, dem, start);
-      if (p) {
-        points.push({ x, y, ...p });
-        start = p.height; // Neighbours are close in height: a good first guess.
-      }
+      const p = groundUnder(x, y, dem);
+      if (p) points.push({ x, y, ...p });
     }
   }
   if (!points.length) return null;

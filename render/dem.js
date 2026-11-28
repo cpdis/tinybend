@@ -38,7 +38,9 @@ export async function fetchDem(folder = DEM_FOLDER) {
  */
 export async function loadDem(folder = DEM_FOLDER, geoidOffset = CITY.ground.geoidOffset) {
   const names = existsSync(folder) ? readdirSync(folder).filter((f) => f.endsWith(".tif")) : [];
-  if (!names.length) throw new Error(`no DEM tiles in ${folder}: run node render/dem.js fetch`);
+  // Every tile the city needs must be there: a missing one would silently drop the shots over it.
+  const missing = CITY.ground.demTiles.filter((name) => !names.includes(`${name}.tif`));
+  if (missing.length) throw new Error(`DEM tiles missing from ${folder}: ${missing.join(", ")}. Run node render/dem.js fetch`);
   const tiles = [];
   for (const name of names) {
     const image = await (await fromFile(join(folder, name))).getImage();

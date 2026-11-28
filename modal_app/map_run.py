@@ -32,7 +32,8 @@ from .plan import grid, next_wave, pins
 from .sample import app, draw
 
 # Areas drawn before this job existed. They are pinned to like any other finished area.
-SEED = ["city", "b2-east", "b2-south", "b2-corner"]
+# Perth had four hand-drawn seeds; Bend has none yet (docs/porting.md, Phase 2).
+SEED: list[str] = []
 # Dollars for one whole area: 28 minutes of H100 at $3.95 an hour, plus start-up. A wave is
 # costed as if every area were whole, so the budget errs on the safe side.
 AREA_COST = 2.1

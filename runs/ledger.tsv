@@ -1,2 +1,3 @@
 date	job	command	estimate	actual	outcome
 2026-11-27	google tiles, bend coverage probe	node render/shoot.js render/frames/bend-probe.json --out render/out/bend-probe (scratch copy of tinyperth render, camera.bend.js)	under $0.10	under $0.10 (28 shots, 24,233 tiles shown, no retries)	28 rendered, 0 failed, 0 bad in check-shots
+2026-11-28	agy-review (Gemini 4 Neon, Colin's sign-in on the Mac)	scripts/agy-review a15a8de, generated render/frames/bend.json and grid.svg left out of the diff; plus a direct agy plan review	under $0.10	sign-in quota, no API charge (setup 228,807 tokens, plan 140,304 tokens)	setup: 6 findings; plan: 10 design questions and number fixes (PLAN.md)
