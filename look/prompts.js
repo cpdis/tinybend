@@ -77,6 +77,12 @@ export const VARIANTS = [
     note: "A with all three Bend paragraphs: hard light, open canopy, rock and snow facets.",
     styling: `${NEUTRAL_STYLING}\n\n${HARD_LIGHT}\n\n${OPEN_CANOPY}\n\n${TERRAIN}`,
   },
+  {
+    id: "g",
+    name: "B and C together",
+    note: "Added after the first sheet: B's light with C's open canopy, without D's rock and snow paragraph, which F suggested caused stray contour lines and white blobs. B was dark and dense in the forest; C kept separate crowns over open ground.",
+    styling: `${NEUTRAL_STYLING}\n\n${HARD_LIGHT}\n\n${OPEN_CANOPY}`,
+  },
 ];
 
 // Sent before the base prompt when a variant carries a draft of the same frame.
