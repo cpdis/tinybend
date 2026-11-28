@@ -82,9 +82,9 @@ export const VARIANTS = [
 // Sent before the base prompt when a variant carries a draft of the same frame.
 export const GUIDE_NOTE = `Two images are attached. The first is a rough, blurry draft of this exact scene, already in the right colours: use its colour for every surface, and keep each shape where the draft has it. The second is the image to redraw, which shows the detail the draft lacks.`;
 
-// The variant Colin picks from the Phase 1 sheet for teacher calls. Unset until he does, so no
-// teacher run can start on a look nobody chose. Keep modal_app/common.py in step.
-export const TEACHER_VARIANT = null;
+// The variant Colin picked from the Phase 1 sheet for summer teacher calls (2026-11-28): B,
+// Perth's look with hard high-desert light. Keep modal_app/common.py in step.
+export const TEACHER_VARIANT = "b";
 
 export function buildPrompt(variant, waterSentence, groundSentence) {
   // No style reference image goes into any call (CLAUDE.md, "Look and originality"). A guide is

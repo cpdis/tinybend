@@ -8,8 +8,7 @@ row says what to change. Delete a row when its PR lands.
 
 | File | Still Perth | Change it to | Phase |
 | --- | --- | --- | --- |
-| `look/prompts.js` | `TEACHER_VARIANT` unset until Colin picks from the Phase 1 sheet | Bend's pick; winter variants as a second table | 1 (pick), winter step 1 |
-| `modal_app/common.py` | `TEACHER_VARIANT = None` | Bend's pick, in step with `look/prompts.js` | 1 (pick) |
+| `look/prompts.js` | Summer pick is B (2026-11-28) | Winter variants as a second table | winter step 1 |
 | `look/check.js` | Green check assumes lawns (60% of the render's clear green) | Recalibrate on Bend frames: high desert is grey-green and sparse. Add the summer snow and lava checks (PLAN.md, "Checks for summer") | 1 to 2 |
 | `look/edges_geo.py`, `look/edges.py` | `GEOID = -31.0`, GA DEM-S and AusBathyTopo, a coastline, stops capped at 400 m, 1:64 scale | Copernicus GLO-30 (plus the W123 tiles) and `ground.geoidOffset`; no coast; stops to 2,800 m; the gap chart with a snowline tint | site |
 | `look/labels.js`, `look/site-places.js`, `look/streets.js`, `look/landmark-cards.js` | `GROUND = -25` (Perth's coastal plain) | `groundProjector()` from `render/dem.js` | site |
