@@ -1,1 +1,183 @@
-[]
+[
+ {
+  "id": "mirror-pond",
+  "name": "Mirror Pond, Drake Park and the footbridge",
+  "lat": 44.05959,
+  "lon": -121.3192,
+  "kind": "landmark",
+  "osm": "way/142063140"
+ },
+ {
+  "id": "downtown",
+  "name": "Downtown: Wall and Bond Streets and the Tower Theatre",
+  "lat": 44.05876,
+  "lon": -121.31494,
+  "kind": "landmark",
+  "osm": "way/303416937"
+ },
+ {
+  "id": "old-mill-stacks",
+  "name": "The three Old Mill smokestacks",
+  "lat": 44.04638,
+  "lon": -121.31513,
+  "kind": "landmark",
+  "osm": "node/8858988203"
+ },
+ {
+  "id": "old-mill-amphitheater",
+  "name": "Hayden Homes Amphitheater",
+  "lat": 44.04644,
+  "lon": -121.31805,
+  "kind": "landmark",
+  "osm": "way/438346291"
+ },
+ {
+  "id": "whitewater-park",
+  "name": "Bend Whitewater Park, McKay Park and the Colorado Avenue bridge",
+  "lat": 44.05009,
+  "lon": -121.32127,
+  "kind": "landmark",
+  "osm": "node/3921516152"
+ },
+ {
+  "id": "riverbend-park",
+  "name": "Riverbend Park, with Farewell Bend Park beside it",
+  "lat": 44.04188,
+  "lon": -121.32497,
+  "kind": "landmark",
+  "osm": "relation/3681256"
+ },
+ {
+  "id": "pilot-butte",
+  "name": "Pilot Butte summit",
+  "lat": 44.06058,
+  "lon": -121.28326,
+  "kind": "landmark",
+  "osm": "node/357313470"
+ },
+ {
+  "id": "awbrey-butte",
+  "name": "Awbrey Butte: Central Oregon Community College",
+  "lat": 44.07113,
+  "lon": -121.34771,
+  "kind": "landmark",
+  "osm": "relation/6727470"
+ },
+ {
+  "id": "osu-cascades",
+  "name": "OSU-Cascades campus",
+  "lat": 44.04427,
+  "lon": -121.33772,
+  "kind": "landmark",
+  "osm": "way/442788427"
+ },
+ {
+  "id": "pine-nursery-park",
+  "name": "Pine Nursery Park",
+  "lat": 44.0911,
+  "lon": -121.26617,
+  "kind": "landmark",
+  "osm": "way/276799899"
+ },
+ {
+  "id": "phils-trailhead",
+  "name": "Phil's Trailhead",
+  "lat": 44.04338,
+  "lon": -121.38599,
+  "kind": "landmark",
+  "osm": "node/746680458"
+ },
+ {
+  "id": "roundabout-art",
+  "name": "Phoenix Rising, roundabout sculpture on NW Galveston Avenue",
+  "lat": 44.05663,
+  "lon": -121.3319,
+  "kind": "landmark",
+  "osm": "node/5363133587"
+ },
+ {
+  "id": "west-village",
+  "name": "West Village Lodge",
+  "lat": 44.00286,
+  "lon": -121.67818,
+  "kind": "landmark",
+  "osm": "way/209711990"
+ },
+ {
+  "id": "sunrise-lodge",
+  "name": "Sunrise Lodge",
+  "lat": 43.99216,
+  "lon": -121.6613,
+  "kind": "landmark",
+  "osm": "way/209711989"
+ },
+ {
+  "id": "pine-marten-lodge",
+  "name": "Pine Marten Lodge",
+  "lat": 43.99044,
+  "lon": -121.68686,
+  "kind": "landmark",
+  "osm": "way/278760556"
+ },
+ {
+  "id": "summit-express",
+  "name": "Summit Express top station",
+  "lat": 43.97754,
+  "lon": -121.68594,
+  "kind": "landmark",
+  "osm": "way/307527040"
+ },
+ {
+  "id": "northwest-express",
+  "name": "Northwest Express lift line, middle",
+  "lat": 43.99201,
+  "lon": -121.70597,
+  "kind": "landmark",
+  "osm": "way/40016036"
+ },
+ {
+  "id": "shevlin-park",
+  "name": "Shevlin Park",
+  "lat": 44.07445,
+  "lon": -121.38108,
+  "kind": "test",
+  "osm": "relation/3681259",
+  "radius": 900
+ },
+ {
+  "id": "eastside-subdivision",
+  "name": "Mountain View neighbourhood, east Bend",
+  "lat": 44.071,
+  "lon": -121.26536,
+  "kind": "test",
+  "osm": "node/9970304266",
+  "radius": 400
+ },
+ {
+  "id": "deschutes-rimrock",
+  "name": "Deschutes rimrock at Sawyer Overlook Park",
+  "lat": 44.09026,
+  "lon": -121.31652,
+  "kind": "test",
+  "osm": "way/276799918",
+  "radius": 400
+ },
+ {
+  "id": "widgi-creek",
+  "name": "Widgi Creek golf course",
+  "lat": 44.00354,
+  "lon": -121.387,
+  "kind": "test",
+  "osm": "relation/7948882",
+  "radius": 700
+ },
+ {
+  "id": "cinder-cone",
+  "name": "Egan Cone, the cinder cone beside West Village",
+  "lat": 43.99986,
+  "lon": -121.68814,
+  "kind": "test",
+  "osm": "node/9695603175",
+  "radius": 300
+ }
+]

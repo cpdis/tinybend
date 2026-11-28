@@ -15,7 +15,7 @@ row says what to change. Delete a row when its PR lands.
 | `look/labels.js`, `look/site-places.js`, `look/streets.js`, `look/landmark-cards.js` | `GROUND = -25` (Perth's coastal plain) | `groundProjector()` from `render/dem.js` | site |
 | `look/osm-water.js` | Perth's water query | Deschutes, Mirror Pond, canals, ponds; frozen-pond list for winter | 1 |
 | `render/even.js` | Sentinel-2 pass over Perth, `GROUND = -15`, Perth render folders | A Bend pass if the render needs evening out; per-shot ground from the frames | 2 (only if needed) |
-| `places/lookup.js` | Perth's places and Overpass areas | Bend's 17 landmarks, hard places and 5 test places from OSM, run on the Mac (`places/bend.json` is empty until then) | before Phase 1 |
+| `places/lookup.js` | Perth's places and Overpass areas | Hard places for Bend (`places/bend.json` already has the 17 landmarks and 5 test places, 2026-11-28) | 2 |
 | `look/charts.js`, `look/sheets.js`, `look/sheet.template.html`, `look/sheet.js` | Perth titles and examples | Bend's | when first run |
 | `scripts/og/og.html` | tinyperth.com and its tile host | Bend's domain (open) | site |
 | `docs/agent-native.md` | Perth's agent API notes | Rewrite for Bend's site | site |

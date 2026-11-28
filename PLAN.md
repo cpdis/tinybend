@@ -136,7 +136,7 @@ Winter gets its own check, not `look/check.js`'s summer tests (lost green, brigh
 
 ## Bend places in training
 
-All in `places/bend.json` with `id`, `name`, `lat`, `lon`, `kind`. Coordinates come from OSM, fetched on the Mac (the cloud can't reach Overpass); `places/bend.json` is empty until then. Landmarks need Colin's approval on a contact sheet before training, for each season's pairs.
+All in `places/bend.json` with `id`, `name`, `lat`, `lon`, `kind`. Coordinates come from OSM, fetched on the Mac (the cloud can't reach Overpass): 17 landmarks and 5 test places in `places/bend.json` since 2026-11-28, each with its OSM id. The roundabout is Phoenix Rising on NW Galveston Avenue. The cinder-cone test place is Egan Cone, 0.86 km from West Village's lodge, so its radius is 300 m rather than 500 m to keep West Village's frames clear of it. Landmarks need Colin's approval on a contact sheet before training, for each season's pairs.
 
 ### Landmarks (picked 2026-11-27; Colin still approves each landmark's pairs on the contact sheet before training)
 
@@ -216,7 +216,7 @@ Hosting stays at $0: two seasons of about 230 km² come to about 1.4 GiB, plus a
 
 ## Order
 
-1. Phase 0b probe ($0), done. 2. Colin's decisions, done 2026-11-27. 3. Phase 0 repo and accounts. 3b. A second probe of West Village, Sunrise, the Northwest Express and the cinder-cone test place with the fixed grid (about 8 shots, under $0.05), since the first probe never saw them. 4. Summer: look, render, set, teacher, pilot, draw, sheets, water, tiles, check. 5. Winter: look, teacher, pilot, draw over the summer map, water, tiles, check. 6. Site with the toggle, life layers per season, write-up. Summer can ship alone first.
+1. Phase 0b probe ($0), done. 2. Colin's decisions, done 2026-11-27. 3. Phase 0 repo and accounts. 3b. A second probe of West Village, Sunrise, the Northwest Express and the cinder-cone test place with the fixed grid. Done 2026-11-28: 16 shots, 0 clamped, 0 coarse, all true 3D (journal). 4. Summer: look, render, set, teacher, pilot, draw, sheets, water, tiles, check. 5. Winter: look, teacher, pilot, draw over the summer map, water, tiles, check. 6. Site with the toggle, life layers per season, write-up. Summer can ship alone first.
 
 ## Decisions from the Gemini review (Colin, 2026-11-28)
 
