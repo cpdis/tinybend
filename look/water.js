@@ -5,8 +5,8 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createRequire } from "node:module";
-import { depthAtHeight, unproject } from "../render/camera.js";
-import { WATER_LEVEL, waterLookup } from "./osm-water.js";
+import { waterLookup } from "./osm-water.js";
+import { shotSurface } from "./surface.js";
 
 // sharp is installed once, with the renderer.
 const sharp = createRequire(new URL("../render/", import.meta.url))("sharp");
@@ -37,8 +37,11 @@ function colourSentence(samples) {
   return { spread, sentence };
 }
 
-/** Sample the frame at water level and describe what fraction is water, where, and its colour. */
-async function describe(isWater, window, camera, renderPath) {
+/**
+ * Sample the frame where each pixel's view ray meets what it shows (the depth pass, else the
+ * DEM), and describe what fraction is water, where, and its colour.
+ */
+async function describe(isWater, surface, window, renderPath) {
   const { data, info } = await sharp(renderPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const samples = [];
   const cells = Array.from({ length: 3 }, () => [0, 0, 0]);
@@ -47,8 +50,8 @@ async function describe(isWater, window, camera, renderPath) {
     for (let i = 0; i < GRID; i++) {
       const x = window.x + ((i + 0.5) / GRID) * window.size;
       const y = window.y + ((j + 0.5) / GRID) * window.size;
-      const point = unproject(x, y, depthAtHeight(x, y, WATER_LEVEL, camera), camera);
-      if (isWater(point.lat, point.lon)) {
+      const point = surface(x, y);
+      if (point && isWater(point.lat, point.lon)) {
         total++;
         cells[Math.floor((j * 3) / GRID)][Math.floor((i * 3) / GRID)]++;
         // An enlarged quarter has more image pixels than map pixels, so scale the sample point.
@@ -81,9 +84,10 @@ async function describe(isWater, window, camera, renderPath) {
 
 const dir = process.argv[2];
 const isWater = await waterLookup();
-for (const file of readdirSync(dir).filter((f) => f.endsWith(".json") && !f.endsWith(".water.json"))) {
+for (const file of readdirSync(dir).filter((f) => f.endsWith(".json") && !/\.(water|ground)\.json$/.test(f))) {
   const meta = JSON.parse(readFileSync(join(dir, file), "utf8"));
-  const result = await describe(isWater, meta.window, meta.camera, join(dir, `${meta.id}.png`));
+  const surface = await shotSurface(dir, meta);
+  const result = { ...(await describe(isWater, surface.at, meta.window, join(dir, `${meta.id}.png`))), surface: surface.source };
   writeFileSync(join(dir, `${meta.id}.water.json`), JSON.stringify(result, null, 2));
   console.log(`${meta.id}: ${result.sentence}`);
 }

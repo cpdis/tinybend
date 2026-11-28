@@ -70,6 +70,8 @@ Draw cost is about $0.28 to $0.30 per km² of map on H100s, from Perth's ledger.
 
 As Perth's Phase 1, with the prompt rules unchanged. Four test frames: downtown and the river, ponderosa forest, lava or rimrock, Bachelor. Five or six variants on one contact sheet; Colin picks. 2x quarters, no reference image, no named ground colours, one measured water sentence per frame.
 
+Done 2026-11-28: six variants plus a seventh (G) on four frames, $14.16 in all. Colin picked **B** (Perth's look with hard high-desert light and blue-violet shadows); `TEACHER_VARIANT = "b"`. Tone drifts between separately drawn quarters, most in forest and rimrock (journal); Phase 2 checks it on the teacher set.
+
 What the Bend variants have to get right: ponderosa canopy and its shadows, juniper and sagebrush high desert (grey-green, sparse), black basalt and red-brown cinder, the Deschutes with its whitewater park and Mirror Pond, canals, golf courses, roundabouts, ski runs and summer snowfields.
 
 ## Winter

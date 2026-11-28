@@ -52,3 +52,34 @@ Each entry covers the date, the plan step, what was tried, what failed and why, 
 - **Images.** `writeup/images/probe2/probe2-sheet.webp` and one picture per place in `writeup/images/probe2/`.
 
 **In plain words.** The first test render missed the bottom of the mountain, so this one aimed straight at the ski lodges, a lift and the small volcanic cone next to the main lodge. They all came out as proper 3D, and the new depth limits held everywhere. The list of places is now pinned to real map features, including the five places the model must never see in training, so they can be used later to check it honestly.
+
+## 2026-11-28: the summer look
+
+- **Step.** Phase 1: the summer look.
+- **Terms.**
+  - **Teacher.** A large image model (Google's Gemini 3 Pro Image) that redraws a render as pixel art from a written prompt. Its drawings become the training pairs for our own, much cheaper model later.
+  - **Variant.** One version of the teacher prompt. Each variant is the same base prompt with one paragraph changed or added, so a contact sheet shows what that paragraph does.
+  - **Quarter.** A shot cut into four 1,024-pixel squares, each enlarged 2x before the teacher draws it. Perth found that at this zoom the teacher redraws instead of copying the photo.
+  - **Water sentence.** One generated sentence per quarter saying how much of it is open water, where, and in what colours, measured from OpenStreetMap and the render. It's the only thing in a prompt that differs between frames.
+  - **Flat share.** The share of pixels whose 3 × 3 neighbourhood is one flat tone. Photos score low, pixel art high.
+- **Frames.** Four windows centred on downtown and Mirror Pond, pine forest by Phil's trails, the basalt canyon of the Deschutes north of downtown, and Bachelor's summit (`render/frames/phase1.json`). None touches a test place. Rendered on the Mac: 0 clamped depth, 0 coarse tiles, 3,777 tiles.
+- **Water in Bend.** Perth's water sentence projected every pixel onto one water height (-31 m) and treated everything west of the coast as sea. Bend has no coast, and the Deschutes drops about 110 m across town, so each pixel's ground point now comes from the shot's own depth pass (`look/surface.js`), and water comes from 362 OpenStreetMap features: 200 water areas, 41 canals and 121 ditches, a canal counting as water within half its width of its line.
+- **What failed.** The first water sentences said downtown had no water at all, with Mirror Pond in plain view. The depth pass is a 16-bit greyscale PNG, and the image library read it as 8-bit colour unless told otherwise, so every pixel decoded to the near end of its depth range and landed about 500 m in the air and 570 m south of where it was. One line fixed it (`toColourspace("grey16")`), and `tests/test_surface.mjs` now fails without it. With the fix, downtown's two upper quarters read 18% and 28% water and the other 14 quarters none, which matches the renders.
+- **Variants.** A is Tiny Perth's chosen prompt, unchanged: every colour taken from the render, no ground colour named. B adds hard high-desert light with every cast shadow one flat blue-violet; C adds separate tree crowns over open ground; D adds rock ledges as stepped faces and snow kept exactly where the render has it; E a thin coloured line; F is B, C and D together. No image other than the render goes into any call.
+- **Numbers.** 96 drawings (4 frames × 4 quarters × 6 variants), 0 failed. Every variant roughly doubles to triples the render's flat share (downtown 0.16 to 0.33–0.37, forest 0.01 to 0.24–0.26, rimrock 0.09 to 0.38–0.40, Bachelor 0.36 to 0.73–0.77), and the six differ by at most 0.043 in any frame, so the score can't choose: the pick was by eye.
+- **Pick.** Colin chose B on all four frames: its blue-violet shadows read as mountain light on the snow, and it keeps the river, fairways and roofs closest to the render. D left one forest quarter almost photographic; F put white blobs in the forest and stray contour lines on the rimrock; E washed downtown's trees to lime.
+- **G.** B is dark and dense in the forest, so a seventh variant, G (B plus C's canopy), was tried on the forest and rimrock: more open ground and more separate crowns, closer to real pine stands, but more drift between quarters (below). B stays.
+- **Drift between quarters.** Each quarter is a separate call, and the teacher's tone wanders from one to the next. Measured as the mean colour jump across the four joins between quarters (RGB distance over a 30-pixel strip each side), with the render's own jump as the floor:
+
+  | Frame | Render | B | C | G |
+  | --- | --- | --- | --- | --- |
+  | Downtown | 17.2 | 19.2 | | |
+  | Forest | 7.5 | 15.2 | 16.6 | 20.8 |
+  | Rimrock | 5.4 | 14.9 | 23.7 | 24.8 |
+  | Bachelor | 31.4 | 40.8 | | |
+
+  The seams themselves never reach the map: teacher pairs are trained one quarter at a time, and the map is drawn in overlapping windows. But the drift is what the trained model learns, so it is checked again in Phase 2 on the teacher set, where a drawing whose tone strays far from its render's can be rejected and redrawn.
+- **Cost.** $13.07 for the 96 drawings and $1.09 for G's 8 (from token counts; `runs/ledger.tsv`), plus under $0.05 of tiles. The first attempt at the draw was refused with "prepayment credits are depleted" at $0: Bend's new Gemini key sits in its own Google project, which needed its own credits in AI Studio.
+- **Images.** `writeup/images/phase1-look/<frame>.webp` (render and A to F, four to a row), `writeup/images/phase1-look/b-c-g.webp` (render, B, C and G on the forest and rimrock).
+
+**In plain words.** Before training anything, we asked Google's best image model to redraw four test pictures of Bend in six slightly different ways, and Colin picked the one he liked. The model got the same instructions each time except for one paragraph, so the differences show what each paragraph does. The winner, B, uses strong sunlight with cool blue-violet shadows. The surprise was not in the styles but in the joins: each picture is drawn in four pieces, and the pieces don't quite agree on colour, most of all in the forest. That doesn't break the map, but it is something to watch when we make the hundreds of example drawings the real model learns from.

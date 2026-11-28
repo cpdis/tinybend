@@ -8,13 +8,13 @@ put = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(put)
 
 # A whole shot is three files, with plain or probe-style ids.
-for name in ["c0_r0.png", "c-12_r6.depth.png", "c3_r-1.json", "pilot-butte__c3_r-1.depth.png"]:
+for name in ["c0_r0.png", "c-12_r6.depth.png", "c3_r-1.json", "pilot-butte__c3_r-1.depth.png", "downtown-river__x-1584_y-1184.json"]:
     assert put.WHOLE.fullmatch(name), name
 # Colour only is the colour PNG, never the depth PNG.
 assert put.COLOUR.fullmatch("c0_r0.png")
 assert not put.COLOUR.fullmatch("c0_r0.depth.png")
 # Other files in a render folder are never sent.
-for name in ["gain.json", "shoot.log", "c0_r0.png.tmp", "frames.json"]:
+for name in ["gain.json", "shoot.log", "c0_r0.png.tmp", "frames.json", "x-1584_y-1184.png", "c0_r0.water.json"]:
     assert not put.WHOLE.fullmatch(name), name
 
 # A shot missing its depth or sidecar is caught before anything is sent.

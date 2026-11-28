@@ -1,9 +1,10 @@
 // Cuts each render into four quarters and enlarges each 2x, ready for the teacher.
-// A quarter keeps its own sidecar, so the water sentence and the checks work on it as on a frame.
+// A quarter keeps its own sidecar and its own cut of the depth pass (not enlarged: one value per
+// map pixel), so the water sentence and the checks work on it as on a frame.
 //
 //   node look/quarters.js render/out/phase1 look/out/quarters-in
 //   node look/water.js look/out/quarters-in
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createRequire } from "node:module";
 
@@ -27,6 +28,10 @@ for (const file of shots) {
       .resize(half * ENLARGE, half * ENLARGE, { kernel: "lanczos3" })
       .png()
       .toFile(join(out, `${id}.png`));
+    const depth = join(renders, `${meta.id}.depth.png`);
+    if (existsSync(depth)) {
+      await sharp(depth).extract({ left, top, width: half, height: half }).toColourspace("grey16").png().toFile(join(out, `${id}.depth.png`));
+    }
     // The window stays in map pixels: the image is larger than the window by ENLARGE.
     const window = { x: meta.window.x + left, y: meta.window.y + top, size: half };
     writeFileSync(join(out, `${id}.json`), JSON.stringify({ ...meta, id, window, enlarged: ENLARGE, parent: meta.id }, null, 2));

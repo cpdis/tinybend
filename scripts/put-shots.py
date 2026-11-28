@@ -32,8 +32,10 @@ VOLUME = "tinybend"
 BATCH = 100
 BATCH_SECONDS = 20 * 60  # About 1.2 GB a batch: far more time than a healthy line needs.
 TRIES = 4
-# Shot ids are c<col>_r<row>, optionally after a prefix such as a probe spot ("pilot-butte__").
-ID = r"(?:[a-z0-9-]+__)?c-?\d+_r-?\d+"
+# Shot ids are c<col>_r<row>, optionally after a prefix such as a probe spot ("pilot-butte__"),
+# or a named window off the grid at its top-left map pixel, such as the look frames
+# ("downtown-river__x-1584_y-1184").
+ID = r"(?:(?:[a-z0-9-]+__)?c-?\d+_r-?\d+|[a-z0-9-]+__x-?\d+_y-?\d+)"
 COLOUR = re.compile(ID + r"\.png")
 WHOLE = re.compile(ID + r"\.(png|depth\.png|json)")
 SHOT = WHOLE

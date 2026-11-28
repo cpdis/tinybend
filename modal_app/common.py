@@ -11,7 +11,7 @@ image = (
     .add_local_dir("look", "/app/look", ignore=["out"])
 )
 
-TEACHER_VARIANT = "k"  # Colin's choice on 2026-11-11. Keep in step with TEACHER_VARIANT in look/prompts.js.
+TEACHER_VARIANT: str | None = "b"  # Colin's pick from Bend's Phase 1 sheet, 2026-11-28. Keep in step with TEACHER_VARIANT in look/prompts.js.
 MAX_REDRAWS = 3  # PLAN.md, Phase 2 step 4: redraw each rejected frame up to 3 times.
 
 
